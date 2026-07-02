@@ -1,0 +1,60 @@
+{
+  "settings": {
+    "http": {
+      "max_body_size": 2000000000
+    }
+  },
+  "listeners": {
+    "*:80": {
+      "pass": "routes"
+    }
+  },
+  "routes": [
+    {
+      "match": {
+        "uri": [
+          "!/assets/*",
+          "*.php",
+          "*.php/*"
+        ]
+      },
+      "action": {
+        "pass": "applications/yii/direct"
+      }
+    },
+    {
+      "action": {
+        "share": "/app/api/web$uri",
+        "fallback": {
+          "pass": "applications/yii/index"
+        }
+      }
+    }
+  ],
+  "applications": {
+    "yii": {
+      "type": "php",
+      "processes": {
+        "max": 250,
+        "spare": 10,
+        "idle_timeout": 120
+      },
+      "targets": {
+        "direct": {
+          "root": "/app/api/web"
+        },
+        "index": {
+          "root": "/app/api/web",
+          "script": "index.php"
+        }
+      },
+      "options": {
+        "file": "/app/docker/php.ini",
+        "admin": {
+          "post_max_size": "200M",
+          "upload_max_filesize": "200M"
+        }
+      }
+    }
+  }
+}

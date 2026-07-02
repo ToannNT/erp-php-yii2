@@ -1,0 +1,35 @@
+<?php
+
+namespace common\models;
+
+/**
+ * This is the ActiveQuery class for [[CmsSectionCategory]].
+ *
+ * @see CmsSectionCategory
+ */
+class CmsSectionCategoryQuery extends \common\models\base\ActiveQuery
+{
+    /*public function active()
+    {
+        $this->andWhere('[[status]]=1');
+        return $this;
+    }*/
+
+    /**
+     * @inheritdoc
+     * @return CmsSectionCategory[]|array
+     */
+    public function all($db = null)
+    {
+        return parent::all($db);
+    }
+
+    /**
+     * @inheritdoc
+     * @return CmsSectionCategory|array|null
+     */
+    public function one($db = null)
+    {
+        return parent::one($db);
+    }
+}

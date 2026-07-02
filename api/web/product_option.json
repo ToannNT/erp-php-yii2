@@ -1,0 +1,44 @@
+[
+  {
+    "key": "mau",
+    "name": "Màu",
+    "values": [
+      {
+        "value": "Đỏ",
+        "slug": "do",
+        "addition_data": "#FF2D00"
+      },
+      {
+        "option_value": "Cam",
+        "slug": "cam",
+        "addition_data": "#FE5530"
+      },
+      {
+        "option_value": "Titan",
+        "slug": "titan",
+        "addition_data": "#52FE30"
+      }
+    ]
+  },
+  {
+    "key": "dungluong",
+    "option_name": "Dung Lượng",
+    "values": [
+      {
+        "option_value": "64GB",
+        "slug": "64gb",
+        "addition_data": null
+      },
+      {
+        "option_value": "128GB",
+        "slug": "128gb",
+        "addition_data": null
+      },
+      {
+        "option_value": "256GB",
+        "slug": "256gb",
+        "addition_data": null
+      }
+    ]
+  }
+]

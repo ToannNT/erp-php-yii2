@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - 9001:80
+    volumes:
+      - ./api:/app/api
+      - ./common:/app/common
+#      - ./console:/app/console
+#      - ./storage:/app/storage
+#      - ./:/app
+    env_file: .env

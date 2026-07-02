@@ -1,0 +1,10 @@
+[{"key":"mau","name":"Màu","value":"Đỏ","additional_data": "#FF5454"},{"key":"dungluong","name":"Dung Lượng","value":"128GB","additional_data": null}],
+// đỏ:
+// vàng:FFE354
+
+[{"name":"Màu","values":[{"value":"Đỏ","slug":"do","additional_data":"#FF5454"}]},{"name":"Dung Lượng","values":[{"value":"64GB","slug":"64gb","additional_data":null}]}]
+
+
+
+
+[{"key":"mau","name":"Màu","value":"Vàng","additional_data"},{"name":"Dung Lượng","value":"128GB"}]
