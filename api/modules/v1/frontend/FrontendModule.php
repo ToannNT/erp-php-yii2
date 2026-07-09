@@ -10,9 +10,9 @@ class FrontendModule extends Module
     public function init()
     {
         parent::init();
-        $this->components = [
-            "cart" => cart\components\CartComponent::class
-        ];
+        // $this->components = [
+        //     "cart" => cart\components\CartComponent::class
+        // ];
         $this->modules = [
             "user" => user\UserModule::class,
             "product" => product\ProductModule::class,
