@@ -32,12 +32,16 @@ class RecordController extends Controller
     /**
      * @throws NotFoundHttpException
      */
-    public function actionView($collection_name)
+    public function actionView($collection_name, $id)
     {
         $collection = $this->findModel($collection_name);
         Collection::setFields($collection->schemas);
         Collection::setTableName($collection_name);
-        return Collection::find()->all();
+        $record = Collection::find()->where(["id" => $id])->one();
+        if (!$record) {
+            throw new NotFoundHttpException("Record not found");
+        }
+        return ResponseBuilder::responseJson(true, $record);
     }
 
     /**
