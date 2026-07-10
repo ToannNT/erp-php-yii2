@@ -31,6 +31,10 @@
         "value": "table",
         "name": "generateJunctionRelationMode"
     },
+    "generaterelationsfromcurrentschema": {
+        "value": true,
+        "name": "generateRelationsFromCurrentSchema"
+    },
     "generatelabelsfromcomments": {
         "value": false,
         "name": "generateLabelsFromComments"

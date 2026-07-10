@@ -5,6 +5,8 @@
 namespace common\models\base;
 
 use Yii;
+use yii\helpers\ArrayHelper;
+use \common\models\FeedbackQuery;
 
 /**
  * This is the base-model class for table "feedback".
@@ -21,12 +23,10 @@ use Yii;
  * @property string $created_at
  * @property string $updated_at
  * @property string $deleted_at
- * @property string $aliasModel
+ * @property integer $is_confirm_term
  */
 abstract class Feedback extends \common\models\base\ActiveRecord
 {
-
-
 
     /**
      * @inheritdoc
@@ -41,13 +41,16 @@ abstract class Feedback extends \common\models\base\ActiveRecord
      */
     public function rules()
     {
-        return [
-            [['user_id', 'status'], 'integer'],
+        $parentRules = parent::rules();
+        return ArrayHelper::merge($parentRules, [
+            [['user_id', 'subject', 'title', 'fullname', 'phone', 'email', 'content', 'status', 'created_at', 'updated_at', 'deleted_at'], 'default', 'value' => null],
+            [['is_confirm_term'], 'default', 'value' => 0],
+            [['user_id', 'status', 'is_confirm_term'], 'integer'],
             [['content'], 'string'],
             [['created_at', 'updated_at', 'deleted_at'], 'safe'],
             [['subject', 'title', 'fullname', 'email'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 50]
-        ];
+        ]);
     }
 
     /**
@@ -55,7 +58,7 @@ abstract class Feedback extends \common\models\base\ActiveRecord
      */
     public function attributeLabels()
     {
-        return [
+        return ArrayHelper::merge(parent::attributeLabels(), [
             'id' => 'ID',
             'user_id' => 'User ID',
             'subject' => 'Subject',
@@ -68,19 +71,16 @@ abstract class Feedback extends \common\models\base\ActiveRecord
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'deleted_at' => 'Deleted At',
-        ];
+            'is_confirm_term' => 'Is Confirm Term',
+        ]);
     }
 
-
-    
     /**
      * @inheritdoc
-     * @return \common\models\FeedbackQuery the active query used by this AR class.
+     * @return FeedbackQuery the active query used by this AR class.
      */
     public static function find()
     {
-        return new \common\models\FeedbackQuery(get_called_class());
+        return new FeedbackQuery(static::class);
     }
-
-
 }
