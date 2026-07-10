@@ -20,7 +20,8 @@ class AdminModule extends Module
             "report" => report\Module::class,
             "order-return" => order_return\Module::class,
             "article" => article\Module::class,
-            "cms" => cms\Module::class
+            "cms" => cms\Module::class,
+            "feedback" => feedback\Module::class,
         ];
     }
 
