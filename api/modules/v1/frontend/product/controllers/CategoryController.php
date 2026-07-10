@@ -24,6 +24,24 @@ class CategoryController extends Controller
         );
     }
 
+
+    public function actionMenu(): array
+    {
+        $categories = Category::find()
+            ->active()
+            ->with("latestProducts")
+            ->orderBy(["priority" => SORT_ASC, "id" => SORT_ASC])
+            ->all();
+
+        $data = array_map(function (Category $category) {
+            return array_merge($category->toArray($category->fields()), [
+                "latest_products" => $category->latestProducts,
+            ]);
+        }, $categories);
+
+        return ResponseBuilder::responseJson(true, $data);
+    }
+
     /**
      * @throws yii\web\HttpException
      * @author khuongdev2001

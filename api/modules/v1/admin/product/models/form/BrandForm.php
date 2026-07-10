@@ -11,23 +11,6 @@ class BrandForm extends Brand
 {
     public $categories;
 
-    public function beforeSave($insert)
-    {
-        if ($insert) {
-            $this->owner_id = Yii::$app->user->getId();
-        }
-        return parent::beforeSave($insert);
-    }
-
-    public function afterSave($insert, $changedAttributes)
-    {
-        if ($insert && !$this->code) {
-            $this->setFormatCode();
-            $this->save(false);
-        }
-        parent::afterSave($insert, $changedAttributes);
-    }
-
     public function createOrDeleteCategory()
     {
         $categoriesOld = CategoryBrand::find()

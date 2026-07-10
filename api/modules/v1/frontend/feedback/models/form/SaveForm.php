@@ -6,6 +6,7 @@ use common\validators\EmailValidator;
 
 class SaveForm extends \common\models\Feedback
 {
+
     public function rules(): array
     {
         return [
@@ -14,7 +15,9 @@ class SaveForm extends \common\models\Feedback
             [["subject", "content"], "string"],
             [['title', 'fullname', 'email'], 'string', 'max' => 255],
             [['phone'], 'string', 'max' => 50],
-            [['status'], "default", "value" => self::STATUS_INACTIVE]
+            [['status'], "default", "value" => self::STATUS_INACTIVE],
+            [['is_confirm_term'], 'required', 'requiredValue' => 1, 'message' => 'Bạn phải đồng ý với điều khoản sử dụng.'],
+            [['is_confirm_term'], 'boolean'],
         ];
     }
-}
+}
