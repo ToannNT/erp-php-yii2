@@ -1,6 +1,6 @@
 <?php
 
-namespace api\modules\v1\frontend\feedback\models;
+namespace api\modules\v1\admin\feedback\models;
 
 use common\models\Feedback as BaseFeedback;
 
@@ -10,6 +10,7 @@ class Feedback extends BaseFeedback
     {
         return [
             'id',
+            'user_id',
             'subject',
             'title',
             'fullname',
