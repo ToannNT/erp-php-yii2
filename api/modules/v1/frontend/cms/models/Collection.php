@@ -6,21 +6,25 @@ use common\models\Collection as BaseCollection;
 
 class Collection extends BaseCollection
 {
-    public function extraFields()
+    public function fields()
     {
-        $extrasFields = [];
-        $schemas = self::$schemas;
-        foreach ($schemas as $schema) {
+        $fields = parent::fields();
+        foreach (self::$schemas as $schema) {
             if ($schema["type"] != SystemCmsCollection::TYPE_RELATION) {
                 continue;
             }
-            $extrasFields[$schema["name"]] = function () use ($schema) {
-                if (!empty($schema["options"]["is_cms"])) {
-                    return $this->getRelationCms($schema);
-                }
-                return $this->getRelationCore($schema);
-            };
+            $fields[$schema["name"]] = $this->getRelationFieldClosure($schema);
         }
-        return $extrasFields;
+        return $fields;
+    }
+
+    protected function getRelationFieldClosure($schema)
+    {
+        return function () use ($schema) {
+            if (!empty($schema["options"]["is_cms"])) {
+                return $this->getRelationCms($schema);
+            }
+            return $this->getRelationCore($schema);
+        };
     }
 }

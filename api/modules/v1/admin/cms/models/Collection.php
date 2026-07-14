@@ -12,22 +12,38 @@ class Collection extends \common\models\Collection
         return "";
     }
 
+    public function fields()
+    {
+        $fields = parent::fields();
+        foreach (self::$schemas as $schema) {
+            if ($schema["type"] != SystemCmsCollection::TYPE_RELATION) {
+                continue;
+            }
+            $fields[$schema["name"]] = $this->getRelationFieldClosure($schema);
+        }
+        return $fields;
+    }
+
     public function extraFields()
     {
         $extrasFields = [];
         $schemas = self::$schemas;
         foreach ($schemas as $schema) {
-            if ($schema["type"] != SystemCmsCollection::TYPE_RELATION) {
-                $extrasFields[] = $schema["name"];
+            if ($schema["type"] == SystemCmsCollection::TYPE_RELATION) {
                 continue;
             }
-            $extrasFields[$schema["name"]] = function () use ($schema) {
-                if (!empty($schema["options"]["is_cms"])) {
-                    return $this->getRelationCms($schema);
-                }
-                return $this->getRelationCore($schema);
-            };
+            $extrasFields[] = $schema["name"];
         }
         return $extrasFields;
+    }
+
+    protected function getRelationFieldClosure($schema)
+    {
+        return function () use ($schema) {
+            if (!empty($schema["options"]["is_cms"])) {
+                return $this->getRelationCms($schema);
+            }
+            return $this->getRelationCore($schema);
+        };
     }
 }

@@ -3,10 +3,8 @@
 namespace api\modules\v1\frontend\product\models\search;
 
 use api\modules\v1\frontend\product\models\Product;
-use api\modules\v1\frontend\product\models\ProductVariant;
 use common\models\ProductQuery;
 use yii\data\ActiveDataProvider;
-use function foo\func;
 
 class ProductSearch extends Product
 {
@@ -39,15 +37,15 @@ class ProductSearch extends Product
         ];
     }
 
-    public function getProductVariant($selects = [])
+    public function getProductVariant()
     {
-        return $this->hasMany(ProductVariant::class, ["product_id" => "id"])->limit(1);
+        return $this->productVariants[0] ?? null;
     }
 
     public function rules(): array
     {
         return [
-            ["keyword", "string"],
+            [["keyword", "name"], "string"],
             [["installment", "type", "min_price", "max_price", "tags"], "safe"],
             ["product_option_key", "string"],
             [
@@ -105,23 +103,46 @@ class ProductSearch extends Product
             $query->joinWith("brand")
                 ->andFilterWhere(["brand.slug" => $this->brand_slug]);
         }
+        if ($this->product_option_key) {
+            $productOptionKeyRegexp = implode("|", $this->product_option_key);
+            $query->andWhere('JSON_EXTRACT(product.product_options, "$[*].key") REGEXP :productOptionKeyRegexp', [':productOptionKeyRegexp' => $productOptionKeyRegexp]);
+        }
         if ($this->keyword) {
             $query->joinWith(["productVariants", "brand", "category"])
                 ->andWhere([
-                    "or",
-                    "MATCH (`product`.`name`,`product`.`sku`,`product`.`slug`) AGAINST(:keyword)",
-                    "MATCH (`product_variant`.`name`,`product_variant`.`sku`,`product_variant`.`slug`) AGAINST(:keyword)",
-                    "MATCH (`category`.`name`,`category`.`code`,`category`.`slug`) AGAINST(:keyword)",
-                    "MATCH (`brand`.`name`,`brand`.`code`,`brand`.`slug`) AGAINST(:keyword)"
+                    "and",
+                    [
+                        "or",
+                        "MATCH (`product`.`name`,`product`.`sku`,`product`.`slug`) AGAINST(:keyword)",
+                        "MATCH (`product_variant`.`name`,`product_variant`.`sku`,`product_variant`.`slug`) AGAINST(:keyword)",
+                        "MATCH (`category`.`name`,`category`.`code`,`category`.`slug`) AGAINST(:keyword)",
+                        "MATCH (`brand`.`name`,`brand`.`code`,`brand`.`slug`) AGAINST(:keyword)"
+                    ],
+                    [
+                        "or",
+                        ["like", "product.name", $this->keyword],
+                        ["like", "product.sku", $this->keyword],
+                        ["like", "product.slug", $this->keyword],
+                        ["like", "product_variant.name", $this->keyword],
+                        ["like", "product_variant.sku", $this->keyword],
+                        ["like", "product_variant.slug", $this->keyword],
+                        ["like", "category.name", $this->keyword],
+                        ["like", "category.code", $this->keyword],
+                        ["like", "category.slug", $this->keyword],
+                        ["like", "brand.name", $this->keyword],
+                        ["like", "brand.code", $this->keyword],
+                        ["like", "brand.slug", $this->keyword],
+                    ]
                 ])
                 ->addParams([":keyword" => $this->keyword]);
         }
 
         $this->addFilterProductMetaField($query);
 
-        $query->andFilterWhere([
-            "product.installment" => $this->installment
-        ]);
+        if ($this->installment) {
+            $query->joinWith("productMeta")
+                ->andFilterWhere(["product_meta.installment" => $this->installment]);
+        }
         return $dataProvider;
     }
 
