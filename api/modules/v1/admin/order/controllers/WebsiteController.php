@@ -297,6 +297,39 @@ class WebsiteController extends Controller
     }
 
     /**
+     * @throws HttpException|NotFoundHttpException
+     */
+    public function actionChangeStatus(int $id): array
+    {
+        $order = $this->findModel($id);
+        $status = Yii::$app->request->post("status");
+        if ($status === null || !is_numeric($status)) {
+            return ResponseBuilder::responseJson(false, null, "Missing or invalid 'status'", ApiConstant::STATUS_BAD_REQUEST);
+        }
+        $status = (int)$status;
+        if (!$order->canChangeStatusTo($status)) {
+            return ResponseBuilder::responseJson(
+                false,
+                ["allowed" => Order::MANUAL_STATUS_TRANSITIONS[$order->status] ?? []],
+                "Cannot change status from {$order->status} to {$status}",
+                ApiConstant::STATUS_BAD_REQUEST
+            );
+        }
+        if ($status === OrderAlias::STATUS_CANCEL) {
+            $order->return_note = Yii::$app->request->post("return_note", $order->return_note);
+        }
+        if ($status === OrderAlias::STATUS_DONE) {
+            $order->done_at = date("Y-m-d H:i:s");
+        }
+        $order->status = $status;
+        $order->addProgressStatus($status);
+        if (!$order->save(false)) {
+            return ResponseBuilder::responseJson(false, ["errors" => $order->getErrorSummary(true)], "Can't change status", ApiConstant::STATUS_BAD_REQUEST);
+        }
+        return ResponseBuilder::responseJson(true, compact("order"), "Change status successfully");
+    }
+
+    /**
      * @throws HttpException
      */
     public function actionApproved(int $id): array

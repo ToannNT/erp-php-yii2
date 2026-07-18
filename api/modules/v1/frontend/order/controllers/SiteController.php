@@ -23,22 +23,22 @@ class SiteController extends \yii\rest\Controller
         try {
             $order = new OrderForm();
             if (!$order->load(Yii::$app->request->post(), '') || !$order->validate()) {
-                return ResponseBuilder::responseJson(false, ['errors' => $order->getErrors()],"Order validation failed", ApiConstant::STATUS_BAD_REQUEST);
+                return ResponseBuilder::responseJson(false, ['errors' => $order->getErrors()], "Order validation failed", ApiConstant::STATUS_BAD_REQUEST);
             }
             if (!$order->save()) {
                 $transaction->rollBack();
-                return ResponseBuilder::responseJson(false, ['errors' => $order->getErrors(),"Can't create order"], ApiConstant::STATUS_BAD_REQUEST);
+                return ResponseBuilder::responseJson(false, ['errors' => $order->getErrors(), "Can't create order"], ApiConstant::STATUS_BAD_REQUEST);
             }
             if (!$order->saveOrderItem()) {
                 $transaction->rollBack();
-                return ResponseBuilder::responseJson(false, ['errors' => $order->getErrors(),"Can't create order item"], ApiConstant::STATUS_BAD_REQUEST);
+                return ResponseBuilder::responseJson(false, ['errors' => $order->getErrors(), "Can't create order item"], ApiConstant::STATUS_BAD_REQUEST);
             }
             $transaction->commit();
             return ResponseBuilder::responseJson(true, ['order' => $order], 'Create order successfully', ApiConstant::STATUS_OK);
         } catch (Exception $e) {
             Yii::error($e);
             $transaction->rollBack();
-            return ResponseBuilder::responseJson(false, [], 'internal server error',ApiConstant::STATUS_BAD_REQUEST);
+            return ResponseBuilder::responseJson(false, [], 'internal server error', ApiConstant::STATUS_BAD_REQUEST);
         }
     }
 }

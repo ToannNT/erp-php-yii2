@@ -13,6 +13,19 @@ class Order extends BaseModel
 {
     const SCENARIO_CANCEL = "scenario_cancel";
     const SCENARIO_ADD_PROMOTION = "scenario_promotion";
+    const MANUAL_STATUS_TRANSITIONS = [
+        self::STATUS_ORDER          => [self::STATUS_APPROVED, self::STATUS_CANCEL],
+        self::STATUS_APPROVED       => [self::STATUS_WATING_SHIPPER, self::STATUS_CANCEL],
+        self::STATUS_WATING_SHIPPER => [self::STATUS_DONE, self::STATUS_CANCEL],
+        self::STATUS_DONE           => [],
+        self::STATUS_CANCEL         => [],
+    ];
+
+    public function canChangeStatusTo($status): bool
+    {
+        $allowed = self::MANUAL_STATUS_TRANSITIONS[$this->status] ?? [];
+        return in_array((int)$status, $allowed, true);
+    }
 
     public function fields()
     {
@@ -27,7 +40,7 @@ class Order extends BaseModel
             "inventory_id",
             "client" => "client",
             "created_by" => function () {
-                return $this->createdBy->username;
+                return $this->createdBy?->username;
             },
             "type",
             "discount",
@@ -122,7 +135,7 @@ class Order extends BaseModel
 
     public function getClient()
     {
-        return parent::getClient()->addSelect(["id", "name","phone"]);
+        return parent::getClient()->addSelect(["id", "name", "phone"]);
     }
 
     public function getOrderShip()
