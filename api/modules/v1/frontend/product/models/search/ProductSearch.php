@@ -18,6 +18,7 @@ class ProductSearch extends Product
     public $product_option_key;
     public $category_slug;
     public $brand_slug;
+    public $ids;
     public $productMetaFilters;
 
     public function fields()
@@ -50,7 +51,7 @@ class ProductSearch extends Product
             [["installment", "type", "min_price", "max_price", "tags"], "safe"],
             ["product_option_key", "string"],
             [
-                ["product_option_key", "category_slug", "brand_slug", "tags"],
+                ["product_option_key", "category_slug", "brand_slug", "tags", "category_id", "brand_id", "ids"],
                 function ($attribute) {
                     $this->$attribute = explode(",", $this->$attribute);
                 }
@@ -70,7 +71,15 @@ class ProductSearch extends Product
                 'params' => $params,
             ],
             'sort' => [
-                'params' => $params
+                'params' => $params,
+                'attributes' => [
+                    'id',
+                    'name',
+                    'unit_price',
+                    'compare_price',
+                    'priority',
+                    'created_at',
+                ],
             ]
         ]);
         $this->load($params, "");
@@ -103,6 +112,15 @@ class ProductSearch extends Product
         if ($this->brand_slug) {
             $query->joinWith("brand")
                 ->andFilterWhere(["brand.slug" => $this->brand_slug]);
+        }
+        if ($this->category_id) {
+            $query->andFilterWhere(["product.category_id" => $this->category_id]);
+        }
+        if ($this->brand_id) {
+            $query->andFilterWhere(["product.brand_id" => $this->brand_id]);
+        }
+        if ($this->ids) {
+            $query->andFilterWhere(["product.id" => $this->ids]);
         }
         if ($this->product_option_key) {
             $productOptionKeyRegexp = implode("|", $this->product_option_key);
