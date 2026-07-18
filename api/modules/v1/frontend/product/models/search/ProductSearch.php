@@ -129,31 +129,20 @@ class ProductSearch extends Product
         if ($this->keyword) {
             $query->joinWith(["productVariants", "brand", "category"])
                 ->andWhere([
-                    "and",
-                    [
-                        "or",
-                        "MATCH (`product`.`name`,`product`.`sku`,`product`.`slug`) AGAINST(:keyword)",
-                        "MATCH (`product_variant`.`name`,`product_variant`.`sku`,`product_variant`.`slug`) AGAINST(:keyword)",
-                        "MATCH (`category`.`name`,`category`.`code`,`category`.`slug`) AGAINST(:keyword)",
-                        "MATCH (`brand`.`name`,`brand`.`code`,`brand`.`slug`) AGAINST(:keyword)"
-                    ],
-                    [
-                        "or",
-                        ["like", "product.name", $this->keyword],
-                        ["like", "product.sku", $this->keyword],
-                        ["like", "product.slug", $this->keyword],
-                        ["like", "product_variant.name", $this->keyword],
-                        ["like", "product_variant.sku", $this->keyword],
-                        ["like", "product_variant.slug", $this->keyword],
-                        ["like", "category.name", $this->keyword],
-                        ["like", "category.code", $this->keyword],
-                        ["like", "category.slug", $this->keyword],
-                        ["like", "brand.name", $this->keyword],
-                        ["like", "brand.code", $this->keyword],
-                        ["like", "brand.slug", $this->keyword],
-                    ]
-                ])
-                ->addParams([":keyword" => $this->keyword]);
+                    "or",
+                    ["like", "product.name", $this->keyword],
+                    ["like", "product.sku", $this->keyword],
+                    ["like", "product.slug", $this->keyword],
+                    ["like", "product_variant.name", $this->keyword],
+                    ["like", "product_variant.sku", $this->keyword],
+                    ["like", "product_variant.slug", $this->keyword],
+                    ["like", "category.name", $this->keyword],
+                    ["like", "category.code", $this->keyword],
+                    ["like", "category.slug", $this->keyword],
+                    ["like", "brand.name", $this->keyword],
+                    ["like", "brand.code", $this->keyword],
+                    ["like", "brand.slug", $this->keyword],
+                ]);
         }
 
         $this->addFilterProductMetaField($query);
