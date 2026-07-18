@@ -17,6 +17,7 @@ class Product extends BaseProduct
             "name",
             "slug",
             "unit_price",
+            "compare_price",
             "brand" => "brand",
             "category" => "category",
             "product_options",

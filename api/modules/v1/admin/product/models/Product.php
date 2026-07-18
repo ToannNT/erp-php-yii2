@@ -35,6 +35,7 @@ class Product extends BaseProduct
             "suppliers" => "suppliers",
             "slug",
             "unit_price",
+            "compare_price",
             "images",
             "tags",
             "sll_price",
@@ -54,48 +55,54 @@ class Product extends BaseProduct
         ];
     }
 
-//    public function extraFields()
-//    {
-//        return [
-//            "id",
-//            "name",
-//            "sku",
-//            "bar_code",
-//            "category" => "category",
-//            "brand" => "brand",
-//            "suppliers" => "suppliers",
-//            "slug",
-//            "unit_price",
-//            "images",
-//            "tags",
-//            "sll_price",
-//            "import_price",
-//            "has_tax",
-//            "dimension",
-//            "allow_sell",
-//            "product_variants" => "productVariants",
-//            "weight",
-//            "weight_type",
-//            "description",
-//            "short_description",
-//            "status",
-//            "created_at",
-//            "updated_at",
-//        ];
-//    }
+    //    public function extraFields()
+    //    {
+    //        return [
+    //            "id",
+    //            "name",
+    //            "sku",
+    //            "bar_code",
+    //            "category" => "category",
+    //            "brand" => "brand",
+    //            "suppliers" => "suppliers",
+    //            "slug",
+    //            "unit_price",
+    //            "images",
+    //            "tags",
+    //            "sll_price",
+    //            "import_price",
+    //            "has_tax",
+    //            "dimension",
+    //            "allow_sell",
+    //            "product_variants" => "productVariants",
+    //            "weight",
+    //            "weight_type",
+    //            "description",
+    //            "short_description",
+    //            "status",
+    //            "created_at",
+    //            "updated_at",
+    //        ];
+    //    }
 
     public function rules()
     {
         return [
             [["name", "sku"], "required"],
             [["name", "sku", "bar_code"], "unique", "filter" => [
-                "!=", "status", Product::STATUS_DELETE
+                "!=",
+                "status",
+                Product::STATUS_DELETE
             ]],
             [["category_id"], "exist", 'targetClass' => Category::class, "filter" => [
-                "=", "status", Category::STATUS_ACTIVE
+                "=",
+                "status",
+                Category::STATUS_ACTIVE
             ], 'targetAttribute' => ['category_id' => 'id']],
             [["brand_id"], "exist", "targetClass" => Brand::class, "filter" => [
-                "=", "status", Brand::STATUS_ACTIVE
+                "=",
+                "status",
+                Brand::STATUS_ACTIVE
             ], 'targetAttribute' => ['brand_id' => 'id']],
             [["description"], "string"],
             [["short_description"], "string"],
@@ -117,21 +124,29 @@ class Product extends BaseProduct
     public function getCategory($selects = [])
     {
         return $this->hasOne(Category::class, ["id" => "category_id"])->addSelect([
-            "id", "name", "code", "slug"
+            "id",
+            "name",
+            "code",
+            "slug"
         ]);
     }
 
     public function getBrand()
     {
         return $this->hasOne(Brand::class, ["id" => "brand_id"])->addSelect([
-            "id", "name", "code", "slug",
+            "id",
+            "name",
+            "code",
+            "slug",
         ]);
     }
 
     public function getProductVariants($selects = [])
     {
         return $this->hasMany(ProductVariant::class, ["product_id" => "id"])->andOnCondition([
-            "<>", "product_variant.status", ProductVariant::STATUS_DELETE
+            "<>",
+            "product_variant.status",
+            ProductVariant::STATUS_DELETE
         ]);
     }
 

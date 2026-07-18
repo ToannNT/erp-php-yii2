@@ -25,6 +25,7 @@ class ProductVariant extends \common\models\ProductVariant
             "extra_fields",
             "meta_field",
             "unit_price",
+            "compare_price",
             "images"
         ];
     }

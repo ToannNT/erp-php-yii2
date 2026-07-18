@@ -27,6 +27,7 @@ class ProductSearch extends Product
             "name",
             "slug",
             "unit_price",
+            "compare_price",
             "brand" => "brand",
             "category" => "category",
             "additional_data",

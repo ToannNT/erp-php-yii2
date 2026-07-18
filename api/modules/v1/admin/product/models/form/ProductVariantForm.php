@@ -73,8 +73,8 @@ class ProductVariantForm extends ProductVariant
             [["product_id"], "exist", 'targetClass' => Product::class, "filter" => [
                 "<>", "status", Product::STATUS_DELETE
             ], 'targetAttribute' => ['product_id' => 'id']],
-            [["import_price", "unit_price", "sll_price", "weight"], "number", "min" => 0],
-            [["import_price", "unit_price", "sll_price", "weight"], "default", "value" => 0],
+            [["import_price", "unit_price", "sll_price", "compare_price", "weight"], "number", "min" => 0],
+            [["import_price", "unit_price", "sll_price", "compare_price", "weight"], "default", "value" => 0],
             [["weight_type"], "in", "range" => ["kg", "g"]],
             [["status"], "default", "value" => ProductVariant::STATUS_ACTIVE],
             [["dimension", "barcode"], "string"],
