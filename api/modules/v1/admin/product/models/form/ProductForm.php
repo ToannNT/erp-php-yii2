@@ -37,7 +37,8 @@ class ProductForm extends Product
                 [["product_modifier", "additional_data"], "safe"],
                 [["compare_price"], "number", "min" => 0],
                 [["compare_price"], "default", "value" => 0],
-                [["variants", "product_options", "product_modifier", "tags"], IsArrayValidator::class, 'on' => self::SCENARIO_CREATE],
+                [["variants"], IsArrayValidator::class],
+                [["product_options", "product_modifier", "tags"], IsArrayValidator::class, 'on' => self::SCENARIO_CREATE],
                 [["suppliers"], "each", "rule" => ["integer"]],
                 [["images", "tags", "suppliers", "product_options"], "default", "value" => []],
             ]
@@ -92,17 +93,6 @@ class ProductForm extends Product
                 "unit_price" => $this->unit_price,
                 "sll_price" => $this->sll_price,
                 "compare_price" => $this->compare_price,
-                "inventories" => [
-                    [
-                        "id" => 1,
-                        "name" => "Moon Coffee",
-                        "office_id" => 1,
-                        "quantity" => "10000",
-                        "inventory_id" => 1,
-                        "unit_price" => $this->unit_price,
-                        "sll_price" => $this->sll_price
-                    ]
-                ]
             ]);
         }
         foreach ($this->variants as $variant) {
