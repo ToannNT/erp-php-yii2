@@ -18,7 +18,7 @@ class OrderItem extends BaseOrderItem
             "product_variant_id",
             "product_variant" => "productVariant",
             "number_inventory_current" => function () {
-                return $this->productInventory->available;
+                return $this->productInventory?->available;
             },
             "number_inventory",
             "unit_price",
