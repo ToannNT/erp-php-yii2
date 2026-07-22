@@ -118,6 +118,21 @@ class ItemController extends Controller
                     return ResponseBuilder::responseJson(false, ["errors" => $productVariant->getErrors()], "Can't update variant", ApiConstant::STATUS_BAD_REQUEST);
                 }
             }
+            // ===== TEMP: đồng bộ tên + giá product xuống TẤT CẢ variant của product =====
+            // Yêu cầu tạm thời, KHÔNG đúng logic biến thể (mỗi biến thể vốn có tên/giá riêng).
+            // Dùng updateAll() để ghi thẳng DB, né rule unique `name` khi product có nhiều biến thể.
+            // LƯU Ý: không regenerate `slug` của variant. Xoá nguyên block này khi có logic biến thể chuẩn.
+            ProductVariant::updateAll(
+                [
+                    "name"          => $product->name,
+                    "unit_price"    => $product->unit_price,
+                    "sll_price"     => $product->sll_price,
+                    "compare_price" => $product->compare_price,
+                    "updated_at"    => date("Y-m-d H:i:s"),
+                ],
+                ["and", ["product_id" => $product->id], ["<>", "status", ProductVariant::STATUS_DELETE]]
+            );
+            // ===== END TEMP =====
             $product->clearSupplier($product);
             if (!$product->initSuppliers()) {
                 $transaction->rollBack();
