@@ -110,14 +110,24 @@ class ProductForm extends Product
         $variant->load($variantParam);
         $variant->dimension = $this->dimension;
         if (!$variant->validate() || !$variant->save()) {
-            $this->addError("variant", $variant->getErrors());
+            $this->addError("variant", $this->flattenErrors($variant, "Không lưu được biến thể."));
             return false;
         }
         if (!$variant->initProductInventories()) {
-            $this->addError("variant", $variant->getErrors());
+            $this->addError("variant", $this->flattenErrors($variant, "Không khởi tạo được tồn kho cho biến thể."));
             return false;
         }
         return true;
+    }
+
+    /**
+     * Gom lỗi của model con thành 1 chuỗi để tránh nhét array vào addError()
+     * (nhét array sẽ gây "Array to string conversion" khi implode và che mất lỗi thật).
+     */
+    private function flattenErrors(\yii\base\Model $model, string $fallback): string
+    {
+        $summary = $model->getErrorSummary(true);
+        return $summary ? implode('; ', $summary) : $fallback;
     }
 
     /**

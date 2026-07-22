@@ -43,7 +43,7 @@ class ProductImportController extends Controller
         $result = $form->import();
         if (!empty($result['rolled_back'])) {
             $count = count($result['errors']);
-            return ResponseBuilder::responseJson(false, $result, "Có {$count} dòng lỗi — đã rollback toàn bộ, không import dòng nào.");
+            return ResponseBuilder::responseJson(false, $result, "Có {$count} dòng lỗi — import không thành công.");
         }
         $message = "Import hoàn tất: {$result['success']} thêm mới, {$result['skipped']} bỏ qua.";
         return ResponseBuilder::responseJson(true, $result, $message);

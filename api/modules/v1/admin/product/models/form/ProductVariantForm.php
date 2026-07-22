@@ -43,8 +43,10 @@ class ProductVariantForm extends ProductVariant
         if (!isset($changedAttributes["unit_price"], $changedAttributes["sll_price"])) {
             return false;
         }
-        if ($changedAttributes["unit_price"] != $this->unit_price ||
-            $changedAttributes["sll_price"] != $this->sll_price) {
+        if (
+            $changedAttributes["unit_price"] != $this->unit_price ||
+            $changedAttributes["sll_price"] != $this->sll_price
+        ) {
             /**
              * @var ProductInventory $productInventory
              */
@@ -68,10 +70,14 @@ class ProductVariantForm extends ProductVariant
         return [
             [["name", "sku", "product_id"], "required"],
             [["name", "sku"], "unique", "filter" => [
-                "!=", "status", ProductVariant::STATUS_DELETE
+                "!=",
+                "status",
+                ProductVariant::STATUS_DELETE
             ]],
             [["product_id"], "exist", 'targetClass' => Product::class, "filter" => [
-                "<>", "status", Product::STATUS_DELETE
+                "<>",
+                "status",
+                Product::STATUS_DELETE
             ], 'targetAttribute' => ['product_id' => 'id']],
             [["import_price", "unit_price", "sll_price", "compare_price", "weight"], "number", "min" => 0],
             [["import_price", "unit_price", "sll_price", "compare_price", "weight"], "default", "value" => 0],
@@ -113,7 +119,8 @@ class ProductVariantForm extends ProductVariant
         ]));
         $productInventory->variant = $this;
         if (!$productInventory->save()) {
-            $this->addError("inventories", $productInventory->getErrors());
+            $summary = $productInventory->getErrorSummary(true);
+            $this->addError("inventories", $summary ? implode('; ', $summary) : "Không lưu được tồn kho.");
             return false;
         }
         $inventoryHistory = new InventoryHistory([
