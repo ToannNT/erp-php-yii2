@@ -326,7 +326,7 @@ class WebsiteController extends Controller
         if (!$order->save(false)) {
             return ResponseBuilder::responseJson(false, ["errors" => $order->getErrorSummary(true)], "Can't change status", ApiConstant::STATUS_BAD_REQUEST);
         }
-        return ResponseBuilder::responseJson(true, compact("order"), "Change status successfully");
+        return ResponseBuilder::responseJson(true, ["order" => $order->toArray([], ["order_items"])], "Change status successfully");
     }
 
     /**

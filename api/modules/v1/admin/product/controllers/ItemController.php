@@ -103,6 +103,7 @@ class ItemController extends Controller
             /* Load Tags input and Images input validate in model is Array */
             $product->load($request->post());
             if (!$product->validate() || !$product->save()) {
+                $transaction->rollBack();
                 return ResponseBuilder::responseJson(false, ["errors" => $product->getErrors()], "Can't Update Product", ApiConstant::STATUS_BAD_REQUEST);
             }
             foreach ((array)$product->variants as $variant) {
@@ -113,7 +114,8 @@ class ItemController extends Controller
                 }
                 $productVariant->load($variant);
                 if (!$productVariant->validate() || !$productVariant->save()) {
-                    return ResponseBuilder::responseJson(false, ["errors" => $productVariant], "Product variant not found", ApiConstant::STATUS_BAD_REQUEST);
+                    $transaction->rollBack();
+                    return ResponseBuilder::responseJson(false, ["errors" => $productVariant->getErrors()], "Can't update variant", ApiConstant::STATUS_BAD_REQUEST);
                 }
             }
             $product->clearSupplier($product);
