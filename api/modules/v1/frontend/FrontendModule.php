@@ -27,7 +27,8 @@ class FrontendModule extends Module
             "service" => service\ServiceModule::class,
             "location" => location\Module::class,
             "product-variant" => product_variant\ProductVariantModule::class,
-            "cms" => cms\CmsModule::class
+            "cms" => cms\CmsModule::class,
+            "sitemap" => sitemap\SitemapModule::class
         ];
     }
 }
