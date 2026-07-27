@@ -38,3 +38,14 @@ tests/codeception/*/_support/_generated/*
 backend/web/source
 
 backend/web/file/temp/*
+
+# Uploaded files (local storage driver)
+/api/web/uploads/*
+!/api/web/uploads/.gitkeep
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+
+
+bruno
+.agents

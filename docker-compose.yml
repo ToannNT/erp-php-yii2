@@ -9,7 +9,10 @@ services:
     volumes:
       - ./api:/app/api
       - ./common:/app/common
-#      - ./console:/app/console
-#      - ./storage:/app/storage
-#      - ./:/app
+      # Local upload storage (dev): file upload đổ vào ./storage/uploads trên host để persist + dễ xem.
+      # Prod (CapRover): KHÔNG dùng file này — khai báo Persistent Directory /app/api/web/uploads trong dashboard.
+      - ./storage/uploads:/app/api/web/uploads
+    #      - ./console:/app/console
+    #      - ./storage:/app/storage
+    #      - ./:/app
     env_file: .env

@@ -35,6 +35,14 @@ ADD --chown=unit:unit ./database /app/database
 ADD --chown=unit:unit ./storage /app/storage
 
 COPY --chown=unit:unit ./docker /app/docker
+
+# Local upload storage: tạo thư mục uploads (nằm trong web root -> Unit serve tĩnh sẵn) + fix quyền cho user `unit`.
+# Đăng ký script chown chạy mỗi lần container start để xử lý quyền cho persistent dir / bind mount.
+RUN mkdir -p /app/api/web/uploads && chown -R unit:unit /app/api/web/uploads && \
+    cp /app/docker/chown-uploads.sh /docker-entrypoint.d/00-chown-uploads.sh && \
+    sed -i 's/\r$//' /docker-entrypoint.d/00-chown-uploads.sh && \
+    chmod +x /docker-entrypoint.d/00-chown-uploads.sh
+
 COPY --chown=unit:unit ./.env.dist /app/.env
 COPY --chown=unit:unit ./.env.dist /app/.env.dist
 
