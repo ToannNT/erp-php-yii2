@@ -153,6 +153,79 @@ class Collection extends ActiveRecord
         ]);
     }
 
+    /**
+     * Cột trong bảng cms_* đều là kiểu string, nhưng client gửi mảng cho các field nhiều giá trị
+     * (file multiple, select multiple, relation multiple). JsonBehavior chỉ lo type=json nên phải
+     * tự serialize ở đây, không thì insert/update nổ "Array to string conversion".
+     *
+     * - relation: lưu dạng CSV "1,2,3" để khớp `explode(",")` ở getRelationCms()/getRelationCore().
+     * - còn lại: lưu JSON.
+     */
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+        $relationAttributes = [];
+        foreach (self::$schemas as $schema) {
+            if (($schema["type"] ?? null) === SystemCmsCollectionAlias::TYPE_RELATION && isset($schema["name"])) {
+                $relationAttributes[] = $schema["name"];
+            }
+        }
+        foreach ($this->getAttributes() as $name => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+            $this->$name = in_array($name, $relationAttributes, true)
+                ? implode(",", $value)
+                : json_encode($value, JSON_UNESCAPED_UNICODE);
+        }
+        return true;
+    }
+
+    public function afterFind()
+    {
+        parent::afterFind();
+        $this->decodeMultiValueAttributes();
+    }
+
+    /**
+     * Sau khi save, giá trị trong model vẫn là chuỗi do beforeSave() encode.
+     * Decode lại để response (create/update) trả mảng đúng như lúc đọc bằng find().
+     */
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+        $this->decodeMultiValueAttributes();
+    }
+
+    /**
+     * Trả field file/select về mảng cho client (ngược với beforeSave).
+     * Chỉ decode khi giá trị trông như JSON array/object — để URL/string đơn lẻ giữ nguyên.
+     * KHÔNG áp dụng cho relation: nó lưu CSV và getRelationCms()/getRelationCore() cần string để explode(",").
+     */
+    protected function decodeMultiValueAttributes()
+    {
+        foreach (self::$schemas as $schema) {
+            $type = $schema["type"] ?? null;
+            $name = $schema["name"] ?? null;
+            if (!$name || !in_array($type, [SystemCmsCollectionAlias::TYPE_FILE, SystemCmsCollectionAlias::TYPE_SELECT], true)) {
+                continue;
+            }
+            if (!$this->hasAttribute($name)) {
+                continue;
+            }
+            $value = $this->$name;
+            if (!is_string($value) || $value === "" || !in_array($value[0], ["[", "{"], true)) {
+                continue;
+            }
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $this->$name = $decoded;
+            }
+        }
+    }
+
     public static function tableName()
     {
         return self::$tableName;
