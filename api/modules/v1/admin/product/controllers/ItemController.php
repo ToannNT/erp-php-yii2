@@ -130,7 +130,7 @@ class ItemController extends Controller
                     "sku" => $product->sku,
                     "barcode" => $product->bar_code,
                     "compare_price" => $product->compare_price,
-                    "images" => $product->images,
+                    "images" => json_encode($product->images),
                     "updated_at"    => date("Y-m-d H:i:s"),
                 ],
                 ["and", ["product_id" => $product->id], ["<>", "status", ProductVariant::STATUS_DELETE]]
