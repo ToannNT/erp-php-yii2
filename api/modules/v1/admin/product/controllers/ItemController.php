@@ -52,7 +52,7 @@ class ItemController extends Controller
                 $transaction->rollBack();
                 return ResponseBuilder::responseJson(false, ["errors" => $product->getErrors()], "Can't Create Product", ApiConstant::STATUS_BAD_REQUEST);
             }
-            if(!$product->updateOrCreateTags()){
+            if (!$product->updateOrCreateTags()) {
                 $transaction->rollBack();
                 return ResponseBuilder::responseJson(false, ["errors" => $product->getErrors()], "Can't Create Product Tag", ApiConstant::STATUS_BAD_REQUEST);
             }
@@ -127,7 +127,10 @@ class ItemController extends Controller
                     "name"          => $product->name,
                     "unit_price"    => $product->unit_price,
                     "sll_price"     => $product->sll_price,
+                    "sku" => $product->sku,
+                    "barcode" => $product->bar_code,
                     "compare_price" => $product->compare_price,
+                    "images" => $product->images,
                     "updated_at"    => date("Y-m-d H:i:s"),
                 ],
                 ["and", ["product_id" => $product->id], ["<>", "status", ProductVariant::STATUS_DELETE]]
