@@ -24,6 +24,7 @@ class ProductVariant extends BaseProductVariant
             "name",
             "slug",
             "unit_price",
+            "compare_price",
             "meta_field",
             "images"
         ];

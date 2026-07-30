@@ -38,7 +38,7 @@ class Product extends BaseProduct
         return array_merge(parent::behaviors(), [
             [
                 "class" => JsonBehavior::class,
-                "jsonAttributes" => ["product_options", "additional_data", "tags"]
+                "jsonAttributes" => ["product_options", "additional_data", "tags", "images"]
             ]
         ]);
     }

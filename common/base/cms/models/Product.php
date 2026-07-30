@@ -14,6 +14,8 @@ class Product extends BaseProduct
             "name",
             "slug",
             "unit_price",
+            "compare_price",
+            "images",
             "product_options",
             "variants" => "productVariants",
         ];
@@ -24,7 +26,7 @@ class Product extends BaseProduct
         return array_merge(parent::behaviors(), [
             [
                 "class" => JsonBehavior::class,
-                "jsonAttributes" => ["product_options"]
+                "jsonAttributes" => ["product_options", "images"]
             ]
         ]);
     }
