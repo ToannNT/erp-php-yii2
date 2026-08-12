@@ -1,4 +1,4 @@
-# Env
+ # Env
 /.env
 
 # Composer
@@ -38,6 +38,8 @@ tests/codeception/*/_support/_generated/*
 backend/web/source
 
 backend/web/file/temp/*
+
+/scripts/backup/backup.env
 
 # Uploaded files (local storage driver)
 /api/web/uploads/*

@@ -1,0 +1,2 @@
+# Shell script phải giữ LF, nếu bị CRLF thì Linux báo "bad interpreter: No such file or directory".
+*.sh text eol=lf
