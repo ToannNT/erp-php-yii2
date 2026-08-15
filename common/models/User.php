@@ -116,7 +116,11 @@ class User extends BaseUser implements IdentityInterface
             parent::scenarios(),
             [
                 'oauth_create' => [
-                    'oauth_client', 'oauth_client_user_id', 'email', 'username', '!status'
+                    'oauth_client',
+                    'oauth_client_user_id',
+                    'email',
+                    'username',
+                    '!status'
                 ]
             ]
         );

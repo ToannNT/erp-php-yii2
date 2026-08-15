@@ -33,6 +33,7 @@ class SiteController extends \yii\rest\Controller
                 $transaction->rollBack();
                 return ResponseBuilder::responseJson(false, ['errors' => $order->getErrors(), "Can't create order item"], ApiConstant::STATUS_BAD_REQUEST);
             }
+            $order->saveOrderPaymentMethods();
             $transaction->commit();
             return ResponseBuilder::responseJson(true, ['order' => $order], 'Create order successfully', ApiConstant::STATUS_OK);
         } catch (Exception $e) {

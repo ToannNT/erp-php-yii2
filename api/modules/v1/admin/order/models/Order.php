@@ -58,6 +58,18 @@ class Order extends BaseModel
             "data_tax",
             "delivery_fee",
             "data_delivery_fee",
+            "delivery_method_id",
+            "delivery_method" => function () {
+                if (!$this->deliveryMethod) {
+                    return null;
+                }
+                return [
+                    "id" => $this->deliveryMethod->id,
+                    "code" => $this->deliveryMethod->code,
+                    "name" => $this->deliveryMethod->name,
+                    "fee" => (float)$this->deliveryMethod->fee,
+                ];
+            },
             "payments",
             "data_payments",
             "payment_methods" => "mapOrderPaymentMethods",
@@ -86,6 +98,14 @@ class Order extends BaseModel
         return [
             "order_items" => function () {
                 return $this->getOrderItemsByOrder($this)->all();
+            },
+            // bản ghi thô của bảng order_payment_method — có id dòng + mốc thời gian ghi nhận,
+            // khác field "payment_methods" ở fields() vốn đã dẹt và bỏ mất 2 thông tin đó
+            "order_payment_methods" => function () {
+                return OrderPaymentMethod::find()
+                    ->where(["order_id" => $this->id])
+                    ->orderBy(["id" => SORT_ASC])
+                    ->all();
             },
         ];
     }

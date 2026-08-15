@@ -21,6 +21,7 @@ use yii\helpers\Json;
  * @property Inventory $inventory
  * @property Customer $client
  * @property User $createdBy
+ * @property DeliveryMethod $deliveryMethod
  * @property OrderItem[] $orderItems
  * @property string $statusHtml
  * @author Tan Le <tannht@dtsmart.vn>
@@ -76,6 +77,15 @@ class Order extends BaseOrder
         return $this->hasMany(OrderPaymentMethod::className(), ["order_id" => "id"]);
     }
 
+    /**
+     * Phương thức giao hàng của đơn — mỗi đơn chỉ có 1.
+     * @return \yii\db\ActiveQuery
+     */
+    public function getDeliveryMethod()
+    {
+        return $this->hasOne(DeliveryMethod::class, ["id" => "delivery_method_id"]);
+    }
+
     public function rules()
     {
         return ArrayHelper::merge(
@@ -90,6 +100,9 @@ class Order extends BaseOrder
     {
         $paymentMethods = [];
         foreach ($this->orderPaymentMethods as $orderPaymentMethod) {
+            if (!$orderPaymentMethod->paymentMethod) {
+                continue;
+            }
             $paymentMethods[$orderPaymentMethod->paymentMethod->code] = [
                 "id" => $orderPaymentMethod->paymentMethod->id,
                 "name" => $orderPaymentMethod->paymentMethod->name,
@@ -104,10 +117,10 @@ class Order extends BaseOrder
     {
         return array_map(function ($orderPaymentMethod) {
             return [
-                "id" => $orderPaymentMethod->paymentMethod->id,
-                "code" => $orderPaymentMethod->paymentMethod->code,
-                "name" => $orderPaymentMethod->paymentMethod->name,
-                "payment" => $orderPaymentMethod->payment
+                "id" => $orderPaymentMethod->payment_method_id,
+                "code" => $orderPaymentMethod->paymentMethod?->code,
+                "name" => $orderPaymentMethod->paymentMethod?->name,
+                "payment" => (float)$orderPaymentMethod->payment
             ];
         }, $this->orderPaymentMethods);
     }
@@ -745,20 +758,29 @@ class Order extends BaseOrder
     public function savePaymentMethods(array $payment_methods)
     {
         foreach ($payment_methods as $payment_method) {
-            $status = (new OrderPaymentMethod([
+            $orderPaymentMethod = new OrderPaymentMethod([
                 "payment_method_id" => $payment_method["payment_method_id"],
                 "payment" => $payment_method["payment"],
                 "order_id" => $this->id
-            ]))->save(false);
-            if (!$status) {
-                throw new Exception($status);
+            ]);
+            if (!$orderPaymentMethod->save(false)) {
+                throw new Exception("Can't save payment method {$payment_method["payment_method_id"]} for order {$this->id}");
             }
         }
+        // relation có thể đã được cache trước khi ghi, bỏ cache để serialize ra dữ liệu mới
+        unset($this->orderPaymentMethods);
     }
 
-    public function removeUsedPromotion()
+    /**
+     * Xoá toàn bộ phương thức thanh toán đang gắn với đơn (dùng khi ghi đè).
+     */
+    public function clearPaymentMethods(): void
     {
+        OrderPaymentMethod::deleteAll(["order_id" => $this->id]);
+        unset($this->orderPaymentMethods);
     }
+
+    public function removeUsedPromotion() {}
 
     public function getInventoryIssues()
     {

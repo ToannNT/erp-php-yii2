@@ -16,7 +16,7 @@ class Module extends BaseModule
         $behaviors = parent::behaviors();
         $behaviors['access'] = [
             'class' => \yii\filters\AccessControl::className(),
-            'except' => ["supplier/*", "sub-department/*", "department/*", "delivery-fee/*", "office/*", "inventory/*", "office-policy/*", "promotion/*", "user/index"],
+            'except' => ["supplier/*", "sub-department/*", "department/*", "delivery-fee/*", "payment-method/*", "delivery-method/*", "office/*", "inventory/*", "office-policy/*", "promotion/*", "user/index"],
             'rules' => [
                 [
                     'allow' => true,

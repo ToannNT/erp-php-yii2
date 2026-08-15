@@ -1,6 +1,6 @@
 {
     "tablename": {
-        "value": "order",
+        "value": "delivery_method",
         "name": "tableName"
     },
     "tableprefix": {
@@ -8,7 +8,7 @@
         "name": "tablePrefix"
     },
     "modelclass": {
-        "value": "Order",
+        "value": "DeliveryMethod",
         "name": "modelClass"
     },
     "ns": {

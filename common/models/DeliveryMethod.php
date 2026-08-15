@@ -3,18 +3,14 @@
 namespace common\models;
 
 use Yii;
-use \common\models\base\PaymentMethod as BasePaymentMethod;
+use \common\models\base\DeliveryMethod as BaseDeliveryMethod;
 use yii\helpers\ArrayHelper;
 
 /**
- * This is the model class for table "payment_method".
+ * This is the model class for table "delivery_method".
  */
-class PaymentMethod extends BasePaymentMethod
+class DeliveryMethod extends BaseDeliveryMethod
 {
-
-    const CASH_PAYMENT = 1;
-    const CARD_PAYMENT = 2;
-    const TRANSFER_PAYMENT = 3;
 
     public function behaviors()
     {
@@ -37,7 +33,7 @@ class PaymentMethod extends BasePaymentMethod
     }
 
     /**
-     * Xoá mềm: giữ nguyên bản ghi để các đơn cũ vẫn tra được tên phương thức.
+     * Xoá mềm: giữ bản ghi để đơn cũ vẫn tra được tên phương thức giao hàng đã dùng.
      */
     public function softDelete(): bool
     {
@@ -55,9 +51,9 @@ class PaymentMethod extends BasePaymentMethod
     }
 
     /**
-     * Phương thức mặc định dùng khi client không chọn: ưu tiên is_default, fallback method active đầu tiên.
+     * Phương thức mặc định dùng khi client không chọn: ưu tiên is_default, fallback active đầu tiên.
      */
-    public static function findDefault(): ?PaymentMethod
+    public static function findDefault(): ?DeliveryMethod
     {
         return static::find()->active()->isDefault()->one()
             ?: static::find()->active()->orderBy(["id" => SORT_ASC])->one();

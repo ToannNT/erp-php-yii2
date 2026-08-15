@@ -5,6 +5,8 @@
 namespace common\models\base;
 
 use Yii;
+use yii\helpers\ArrayHelper;
+use \common\models\OrderQuery;
 
 /**
  * This is the base-model class for table "order".
@@ -25,6 +27,7 @@ use Yii;
  * @property double $tax_price
  * @property double $discount
  * @property double $delivery_fee
+ * @property integer $delivery_method_id
  * @property double $payments
  * @property string $delivery
  * @property integer $created_by
@@ -45,12 +48,9 @@ use Yii;
  * @property integer $type
  * @property double $other_fee
  * @property string $done_at
- * @property string $aliasModel
  */
 abstract class Order extends \common\models\base\ActiveRecord
 {
-
-
 
     /**
      * @inheritdoc
@@ -65,13 +65,16 @@ abstract class Order extends \common\models\base\ActiveRecord
      */
     public function rules()
     {
-        return [
-            [['office_id', 'inventory_id', 'client_id', 'created_by', 'status', 'quantity', 'promotion_id', 'type'], 'integer'],
+        $parentRules = parent::rules();
+        return ArrayHelper::merge($parentRules, [
+            [['office_id', 'inventory_id', 'client_id', 'external_id', 'price_policy', 'tax', 'shipping_address', 'order_address', 'note', 'return_note', 'tags', 'total_price', 'tax_price', 'discount', 'delivery_fee', 'delivery_method_id', 'payments', 'delivery', 'created_by', 'created_at', 'updated_at', 'deleted_at', 'status', 'data_tax', 'data_discount', 'data_delivery_fee', 'code', 'channel', 'quantity', 'data_payments', 'data_other_fee', 'promotion_id', 'progress_status', 'type', 'done_at'], 'default', 'value' => null],
+            [['other_fee'], 'default', 'value' => 0],
+            [['office_id', 'inventory_id', 'client_id', 'delivery_method_id', 'created_by', 'status', 'quantity', 'promotion_id', 'type'], 'integer'],
             [['shipping_address', 'order_address', 'note', 'return_note', 'tags', 'delivery', 'data_tax', 'data_discount', 'data_delivery_fee', 'data_payments', 'data_other_fee'], 'string'],
             [['total_price', 'tax_price', 'discount', 'delivery_fee', 'payments', 'other_fee'], 'number'],
             [['created_at', 'updated_at', 'deleted_at', 'done_at'], 'safe'],
             [['external_id', 'price_policy', 'tax', 'code', 'channel', 'progress_status'], 'string', 'max' => 255]
-        ];
+        ]);
     }
 
     /**
@@ -79,7 +82,7 @@ abstract class Order extends \common\models\base\ActiveRecord
      */
     public function attributeLabels()
     {
-        return [
+        return ArrayHelper::merge(parent::attributeLabels(), [
             'id' => 'ID',
             'office_id' => 'Office ID',
             'inventory_id' => 'Inventory ID',
@@ -96,6 +99,7 @@ abstract class Order extends \common\models\base\ActiveRecord
             'tax_price' => 'Tax Price',
             'discount' => 'Discount',
             'delivery_fee' => 'Delivery Fee',
+            'delivery_method_id' => 'Delivery Method ID',
             'payments' => 'Payments',
             'delivery' => 'Delivery',
             'created_by' => 'Created By',
@@ -116,19 +120,15 @@ abstract class Order extends \common\models\base\ActiveRecord
             'type' => 'Type',
             'other_fee' => 'Other Fee',
             'done_at' => 'Done At',
-        ];
+        ]);
     }
 
-
-    
     /**
      * @inheritdoc
-     * @return \common\models\OrderQuery the active query used by this AR class.
+     * @return OrderQuery the active query used by this AR class.
      */
     public static function find()
     {
-        return new \common\models\OrderQuery(get_called_class());
+        return new OrderQuery(static::class);
     }
-
-
 }

@@ -3,18 +3,18 @@
 namespace common\models;
 
 /**
- * This is the ActiveQuery class for [[PaymentMethod]].
+ * This is the ActiveQuery class for [[DeliveryMethod]].
  *
- * @see PaymentMethod
+ * @see DeliveryMethod
  */
-class PaymentMethodQuery extends \common\models\base\ActiveQuery
+class DeliveryMethodQuery extends \common\models\base\ActiveQuery
 {
     /**
      * @return $this
      */
     public function active()
     {
-        $this->andWhere(["status" => PaymentMethod::STATUS_ACTIVE]);
+        $this->andWhere(["status" => DeliveryMethod::STATUS_ACTIVE]);
         return $this;
     }
 
@@ -23,7 +23,7 @@ class PaymentMethodQuery extends \common\models\base\ActiveQuery
      */
     public function unDelete()
     {
-        $this->andWhere(["<>", "status", PaymentMethod::STATUS_DELETE]);
+        $this->andWhere(["<>", "status", DeliveryMethod::STATUS_DELETE]);
         return $this;
     }
 
@@ -38,7 +38,7 @@ class PaymentMethodQuery extends \common\models\base\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return PaymentMethod[]|array
+     * @return DeliveryMethod[]|array
      */
     public function all($db = null)
     {
@@ -47,7 +47,7 @@ class PaymentMethodQuery extends \common\models\base\ActiveQuery
 
     /**
      * @inheritdoc
-     * @return PaymentMethod|array|null
+     * @return DeliveryMethod|array|null
      */
     public function one($db = null)
     {
