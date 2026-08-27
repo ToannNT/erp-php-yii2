@@ -29,7 +29,8 @@ class CategorySearch extends Category
                 'params' => $params
             ],
             'sort' => [
-                'params' => $params
+                'params' => $params,
+                'defaultOrder' => ['id' => SORT_DESC]
             ]
         ]);
 

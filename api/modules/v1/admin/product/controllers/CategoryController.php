@@ -8,7 +8,8 @@ use yii\rest\Controller;
 use yii\web\HttpException;
 use api\helper\response\ApiConstant;
 use api\helper\response\ResponseBuilder;
-use api\modules\v1\admin\product\models\Category;
+use api\modules\v1\admin\product\models\CategoryBrand;
+use api\modules\v1\admin\product\models\form\CategoryForm;
 use api\modules\v1\admin\product\models\search\CategorySearch;
 
 class CategoryController extends Controller
@@ -34,28 +35,40 @@ class CategoryController extends Controller
     }
 
     /**
+     * Tạo category. Nhận thêm `brands: [id, ...]` để gán nhiều nhãn hiệu (multiple select).
+     *
      * @throws HttpException
      */
     public function actionCreate(): array
     {
-        $category = new Category();
+        $category = new CategoryForm();
         $category->load(Yii::$app->request->post());
+        $transaction = Yii::$app->db->beginTransaction();
         if (!$category->validate() || !$category->save()) {
+            $transaction->rollBack();
             return ResponseBuilder::responseJson(false, ["errors" => $category->getErrors()], "Can't create Category");
         }
+        $category->createOrDeleteBrand();
+        $transaction->commit();
         return ResponseBuilder::responseJson(true, compact("category"), "Create Category successfully");
     }
 
     /**
+     * Cập nhật category. Không gửi `brands` => giữ nguyên nhãn hiệu hiện có; gửi `[]` => bỏ hết.
+     *
      * @throws HttpException
      */
     public function actionUpdate(int $id): array
     {
         $category = $this->findModel($id);
         $category->load(Yii::$app->request->post());
+        $transaction = Yii::$app->db->beginTransaction();
         if (!$category->validate() || !$category->save()) {
+            $transaction->rollBack();
             return ResponseBuilder::responseJson(false, ["errors" => $category->getErrors()], "Can't update Category");
         }
+        $category->createOrDeleteBrand();
+        $transaction->commit();
         return ResponseBuilder::responseJson(true, compact("category"), "Update Category successfully");
     }
 
@@ -65,10 +78,15 @@ class CategoryController extends Controller
     public function actionDelete(int $id): array
     {
         $category = $this->findModel($id);
-        if ($category->softDelete()) {
-            return ResponseBuilder::responseJson(true, null, "Delete Category successfully");
+        $transaction = Yii::$app->db->beginTransaction();
+        if (!$category->softDelete()) {
+            $transaction->rollBack();
+            return ResponseBuilder::responseJson(false, null, "Can't delete Category successfully");
         }
-        return ResponseBuilder::responseJson(false, null, "Can't delete Category successfully");
+        // Bảng nối không có soft delete nên dọn thẳng, tránh để brand còn trỏ tới category đã xoá.
+        CategoryBrand::deleteAll(["category_id" => $category->id]);
+        $transaction->commit();
+        return ResponseBuilder::responseJson(true, null, "Delete Category successfully");
     }
 
     /**
@@ -88,9 +106,13 @@ class CategoryController extends Controller
         return ResponseBuilder::responseJson(true, (new CategorySearch())->search(Yii::$app->request->queryParams));
     }
 
+    /**
+     * @return CategoryForm
+     * @throws HttpException
+     */
     public function findModel(int $id)
     {
-        $category = Category::find()->where(["id" => $id])->unDelete()->one();
+        $category = CategoryForm::find()->where(["id" => $id])->unDelete()->one();
         if ($category) {
             return $category;
         }

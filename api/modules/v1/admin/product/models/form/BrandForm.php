@@ -13,6 +13,10 @@ class BrandForm extends Brand
 
     public function createOrDeleteCategory()
     {
+        // Không gửi `categories` => giữ nguyên; gửi [] => bỏ hết. Thiếu guard này thì array_diff(null) fatal ở PHP 8.
+        if (!is_array($this->categories)) {
+            return;
+        }
         $categoriesOld = CategoryBrand::find()
             ->select(["category_id"])
             ->where(["brand_id" => $this->id])

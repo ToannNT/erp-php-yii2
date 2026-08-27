@@ -3,15 +3,19 @@
 namespace api\modules\v1\admin\product\models\search;
 
 use yii\data\ActiveDataProvider;
+use api\modules\v1\admin\product\models\CategoryBrand;
 use api\modules\v1\admin\product\models\Category;
 
 class CategorySearch extends Category
 {
+    /** @var int|int[]|string|null id nhãn hiệu, nhận 1 giá trị hoặc danh sách "1,2,3" */
+    public $brand_id;
+
     public function rules()
     {
         return [
             [['id', 'priority', 'parent_id', 'owner_id', 'status'], 'integer'],
-            [['name', 'type', 'code', 'icon', 'images', 'color', 'description', 'slug', 'group_id', 'created_at', 'updated_at', 'deleted_at'], 'safe'],
+            [['name', 'type', 'code', 'icon', 'images', 'color', 'description', 'slug', 'group_id', 'created_at', 'updated_at', 'deleted_at', 'brand_id'], 'safe'],
         ];
     }
 
@@ -25,7 +29,7 @@ class CategorySearch extends Category
     public function search($params)
     {
 
-        $query = Category::find()->unDelete();
+        $query = Category::find()->unDelete()->with(["batchBrands"]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -62,6 +66,14 @@ class CategorySearch extends Category
             ->andFilterWhere(['like', 'group_id', $this->group_id])
             ->andFilterWhere(['like', 'created_at', $this->created_at])
             ->andFilterWhere(['like', 'updated_at', $this->updated_at]);
+
+        if ($this->brand_id) {
+            // Dùng subquery thay vì joinWith để 1 category không bị nhân dòng khi khớp nhiều nhãn hiệu.
+            $brandIds = is_array($this->brand_id) ? $this->brand_id : explode(",", (string) $this->brand_id);
+            $query->andWhere(["id" => CategoryBrand::find()
+                ->select(["category_id"])
+                ->where(["brand_id" => $brandIds])]);
+        }
 
         return $dataProvider;
     }
