@@ -169,9 +169,18 @@ class ItemController extends Controller
     public function actionDelete(int $id): array
     {
         $product = $this->findModel($id);
+        $transaction = Yii::$app->db->beginTransaction();
         if (!$product->softDelete()) {
+            $transaction->rollBack();
             return ResponseBuilder::responseJson(false, null, "Can't delete");
         }
+        // Xoá mềm luôn biến thể. Bỏ sót thì variant vẫn `status = 1`, mọi chỗ query thẳng
+        // `product_variant` (giỏ hàng, POS, bộ lọc) vẫn tra ra hàng đã xoá.
+        ProductVariant::updateAll(
+            ['status' => ProductVariant::STATUS_DELETE, 'deleted_at' => date('Y-m-d H:i:s')],
+            ['and', ['product_id' => $product->id], ['<>', 'status', ProductVariant::STATUS_DELETE]]
+        );
+        $transaction->commit();
         return ResponseBuilder::responseJson(true, null, "Delete Product successfully");
     }
 
