@@ -45,7 +45,7 @@ class ProductImportController extends Controller
             $count = count($result['errors']);
             return ResponseBuilder::responseJson(false, $result, "Có {$count} dòng lỗi — import không thành công.");
         }
-        $message = "Import hoàn tất: {$result['success']} thêm mới, {$result['skipped']} bỏ qua.";
+        $message = "Import hoàn tất: {$result['created']} thêm mới, {$result['updated']} cập nhật, {$result['skipped']} bỏ qua.";
         return ResponseBuilder::responseJson(true, $result, $message);
     }
 }

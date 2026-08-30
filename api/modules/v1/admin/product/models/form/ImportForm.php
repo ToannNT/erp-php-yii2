@@ -13,6 +13,14 @@ abstract class ImportForm extends Model
 
     protected array $allowedColumns = [];
 
+    /**
+     * Map tên cột đã lowercase => tên cột gốc trong file Excel.
+     *
+     * Header bị lowercase để `Name` và `name` đều khớp, nhưng có loại cột mà chính tên cột là
+     * nhãn hiển thị (vd `attr_CPU`, `attr_SIM Slot`) — chỗ đó cần chữ hoa/thường nguyên bản.
+     */
+    protected array $headerLabels = [];
+
     public function rules(): array
     {
         return [
@@ -34,7 +42,9 @@ abstract class ImportForm extends Model
             return $result;
         }
 
-        $header = array_map('strtolower', array_map('trim', array_shift($rows)));
+        $rawHeader = array_map('trim', array_shift($rows));
+        $header = array_map('strtolower', $rawHeader);
+        $this->headerLabels = array_combine($header, $rawHeader);
         $columnMap = array_flip($header);
         foreach ($this->allowedColumns as $col) {
             if (!isset($columnMap[$col])) {
