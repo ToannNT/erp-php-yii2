@@ -24,7 +24,14 @@ class ProductController extends Controller
      */
     public function actionView($slug): array
     {
-        $product = Product::find()->where(["slug" => $slug])->one();
+        // `slug` KHÔNG unique: mỗi lần tạo lại sản phẩm cùng tên là thêm một dòng trùng slug, bản cũ
+        // chỉ bị xoá mềm. Thiếu active() thì trả về đúng bản đã xoá (id nhỏ nhất), kèm dữ liệu cũ
+        // hoặc rỗng — triệu chứng hay gặp là `additional_data: null`.
+        $product = Product::find()
+            ->where(["slug" => $slug])
+            ->active()
+            ->orderBy(["id" => SORT_DESC])
+            ->one();
         if (!$product) {
             return ResponseBuilder::responseJson(false, null, "Product not found", ApiConstant::STATUS_NOT_FOUND);
         }

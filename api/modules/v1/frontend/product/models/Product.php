@@ -45,7 +45,9 @@ class Product extends BaseProduct
 
     public function getProductVariants($selects = [])
     {
-        return $this->hasMany(ProductVariant::class, ["product_id" => "id"]);
+        // Không lọc thì biến thể đã xoá mềm vẫn hiện trên web khách, kể cả sau khi sản phẩm bị xoá.
+        return $this->hasMany(ProductVariant::class, ["product_id" => "id"])
+            ->andOnCondition(["<>", "product_variant.status", ProductVariant::STATUS_DELETE]);
     }
 
     public function getBrand()
