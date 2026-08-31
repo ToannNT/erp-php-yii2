@@ -29,6 +29,8 @@ class SystemCmsCollection extends BaseSystemCmsCollection
     const TYPE_JSON = "json";
     const TYPE_DATE_TIME = "date_time";
 
+    const TEXT_MAX_LENGTH = 500;
+
     const SCHEMA_TYPES = [
         "text",
         "slug",

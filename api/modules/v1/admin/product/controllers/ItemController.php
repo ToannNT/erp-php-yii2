@@ -2,8 +2,14 @@
 
 namespace api\modules\v1\admin\product\controllers;
 
+use api\modules\v1\admin\product\models\form\ProductImportForm;
 use api\modules\v1\admin\product\models\form\ProductVariantForm;
 use common\models\InventoryHistory;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use yii\web\Response;
 use Exception;
 use Yii;
 use yii\filters\AccessControl;
@@ -191,6 +197,122 @@ class ItemController extends Controller
     public function actionIndex(): array
     {
         return ResponseBuilder::responseJson(true, (new ProductSearch())->search(Yii::$app->request->queryParams));
+    }
+
+    /**
+     * Xuất sản phẩm ra Excel **đúng format import** (`docs/product_import_template.xlsx`), để sửa
+     * hàng loạt trong Excel rồi import ngược lại — `product-import/import` upsert theo `sku`.
+     *
+     * Nhận mọi filter của `ProductSearch` (`?status=`, `?product_name=`…) và xuất toàn bộ kết quả,
+     * không phân trang.
+     *
+     * `?include_html=1` để kèm `additional_data` dưới dạng cột `html_<tên khối>`. Mặc định tắt vì
+     * mỗi khối HTML nặng vài KB, phồng file và ăn RAM nhanh hơn tất cả các cột còn lại cộng lại.
+     *
+     * Khác `variant/export`: file kia là báo cáo tồn kho theo biến thể (có số lượng), không import
+     * ngược được. File này 1 dòng = 1 sản phẩm, khớp đúng quy ước 1 dòng = 1 sản phẩm của import.
+     *
+     * @throws HttpException
+     */
+    public function actionExport(): Response
+    {
+        $includeHtml = (bool)Yii::$app->request->get('include_html');
+        $products = (new ProductSearch())
+            ->search(Yii::$app->request->queryParams)
+            ->query
+            ->with(['category', 'brand'])
+            ->all();
+
+        $htmlColumns = [];
+        $rows = [];
+        foreach ($products as $product) {
+            $row = [
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'bar_code' => $product->bar_code,
+                'category_code' => $product->category->code ?? '',
+                'category' => $product->category->name ?? '',
+                'brand_code' => $product->brand->code ?? '',
+                'brand' => $product->brand->name ?? '',
+                'unit_price' => $product->unit_price,
+                'sll_price' => $product->sll_price,
+                'compare_price' => $product->compare_price,
+                'import_price' => $product->import_price,
+                'weight' => $product->weight,
+                'weight_type' => $product->weight_type,
+                'dimension' => $product->dimension,
+                'short_description' => $product->short_description,
+                'description' => $product->description,
+                'tags' => implode(',', (array)$product->tags),
+                'allow_sell' => $product->allow_sell,
+                'status' => $product->status,
+                'images' => implode(',', (array)$product->images),
+            ];
+            if ($includeHtml) {
+                foreach ((array)$product->additional_data as $block) {
+                    if (empty($block['name'])) {
+                        continue;
+                    }
+                    $column = 'html_' . $block['name'];
+                    $htmlColumns[$column] = true;
+                    $row[$column] = (string)($block['value'] ?? '');
+                }
+            }
+            $rows[] = $row;
+        }
+
+        return $this->sendSpreadsheet(
+            array_merge(ProductImportForm::FIXED_COLUMNS, array_keys($htmlColumns)),
+            $rows,
+            'products_' . date('Ymd_His') . '.xlsx'
+        );
+    }
+
+    /**
+     * Ghi mảng dòng ra file xlsx rồi trả về cho client.
+     *
+     * Tên file kèm timestamp: hai người bấm xuất cùng lúc mà ghi đè chung một tên thì người này
+     * tải nhầm file của người kia.
+     */
+    private function sendSpreadsheet(array $headers, array $rows, string $filename): Response
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Products');
+
+        foreach ($headers as $index => $header) {
+            $sheet->setCellValueByColumnAndRow($index + 1, 1, $header);
+        }
+        $lastColumn = Coordinate::stringFromColumnIndex(count($headers));
+        $sheet->getStyle('A1:' . $lastColumn . '1')->getFont()->setBold(true);
+        $sheet->freezePane('A2');
+
+        foreach ($rows as $rowIndex => $row) {
+            foreach ($headers as $index => $header) {
+                $value = $row[$header] ?? '';
+                if (in_array($header, ProductImportForm::NUMERIC_COLUMNS, true)) {
+                    $sheet->setCellValueByColumnAndRow($index + 1, $rowIndex + 2, $value === '' ? 0 : $value + 0);
+                    continue;
+                }
+                // Ghi dạng chuỗi tường minh: để Excel tự đoán thì mã vạch 10 số thành 1.23E+9,
+                // sku dạng "007" mất số 0 đầu, import ngược lại là sai hết.
+                $sheet->setCellValueExplicitByColumnAndRow(
+                    $index + 1,
+                    $rowIndex + 2,
+                    (string)$value,
+                    DataType::TYPE_STRING
+                );
+            }
+        }
+
+        $directory = Yii::getAlias('@api') . '/web/file/exports';
+        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+            throw new HttpException(500, "Không tạo được thư mục xuất file");
+        }
+        $path = $directory . '/' . $filename;
+        (new Xlsx($spreadsheet))->save($path);
+
+        return Yii::$app->response->sendFile($path, $filename);
     }
 
     /**

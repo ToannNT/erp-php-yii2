@@ -286,7 +286,7 @@ class Collection extends ActiveRecord
         switch ($schema["type"]) {
             case SystemCmsCollectionAlias::TYPE_TEXT:
             case SystemCmsCollectionAlias::TYPE_SLUG:
-                $rule = [$schema["name"], StringValidator::class, "max" => 400];
+                $rule = [$schema["name"], StringValidator::class, "max" => SystemCmsCollectionAlias::TEXT_MAX_LENGTH];
                 break;
             case SystemCmsCollectionAlias::TYPE_BOOLEAN:
                 $rule = [$schema["name"], BooleanValidator::class];

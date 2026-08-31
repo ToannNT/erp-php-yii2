@@ -149,7 +149,13 @@ class VariantController extends Controller
                 $sheet->setCellValueByColumnAndRow(4, $numRow, $productVariant->getQuantity() ?? 0);
                 $sheet->setCellValueByColumnAndRow(5, $numRow, $productVariant->unit_price);
                 $sheet->setCellValueByColumnAndRow(6, $numRow, $productVariant->barcode);
-                $sheet->setCellValueByColumnAndRow(7, $numRow, $product->getSuppliers()->one()->name);
+                // Sản phẩm không có nhà cung cấp thì `one()` trả null — đọc thẳng ->name là fatal,
+                // hỏng cả file export. Lấy hết nhà cung cấp và nối lại, không có thì để trống.
+                $sheet->setCellValueByColumnAndRow(
+                    7,
+                    $numRow,
+                    implode(", ", array_column($product->suppliers, "name"))
+                );
                 $serial++;
             }
         }

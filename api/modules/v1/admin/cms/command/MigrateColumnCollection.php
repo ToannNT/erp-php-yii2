@@ -142,7 +142,7 @@ class MigrateColumnCollection extends Migration
             case SystemCmsCollection::TYPE_URL:
             case SystemCmsCollection::TYPE_SLUG:
             case SystemCmsCollection::TYPE_TEXT:
-                return $this->string(500);
+                return $this->string(SystemCmsCollection::TEXT_MAX_LENGTH);
             case SystemCmsCollection::TYPE_BOOLEAN:
                 return $this->boolean();
             case SystemCmsCollection::TYPE_EDITOR:

@@ -32,6 +32,25 @@ class ProductImportForm extends ImportForm
 
     private const USER_AGENT = 'erp-product-import/1.0';
 
+    /**
+     * Cột cố định của file import, đúng thứ tự trong `docs/product_import_template.xlsx`.
+     *
+     * `ItemController::actionExport()` dùng lại danh sách này để file xuất ra import ngược lại được.
+     * Thêm cột mới thì sửa ở đây + `scratch/generate_templates.php`, export tự có theo.
+     * Ngoài danh sách này còn 2 nhóm cột động do người dùng tự đặt: `attr_*` và `html_*`.
+     */
+    public const FIXED_COLUMNS = [
+        'name', 'sku', 'bar_code', 'category_code', 'category', 'brand_code', 'brand',
+        'unit_price', 'sll_price', 'compare_price', 'import_price',
+        'weight', 'weight_type', 'dimension', 'short_description', 'description', 'tags',
+        'allow_sell', 'status', 'images',
+    ];
+
+    /** Cột ghi vào Excel dạng số; còn lại ghi dạng chuỗi để Excel không đổi mã vạch thành 1.23E+9. */
+    public const NUMERIC_COLUMNS = [
+        'unit_price', 'sll_price', 'compare_price', 'import_price', 'weight', 'allow_sell', 'status',
+    ];
+
     protected array $allowedColumns = ['name'];
 
     /** Số dòng tạo mới / cập nhật của lần import hiện tại. */
