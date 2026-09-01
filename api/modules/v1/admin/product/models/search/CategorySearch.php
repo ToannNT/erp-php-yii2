@@ -14,7 +14,7 @@ class CategorySearch extends Category
     public function rules()
     {
         return [
-            [['id', 'priority', 'parent_id', 'owner_id', 'status'], 'integer'],
+            [['id', 'priority', 'show_on_home', 'parent_id', 'owner_id', 'status'], 'integer'],
             [['name', 'type', 'code', 'icon', 'images', 'color', 'description', 'slug', 'group_id', 'created_at', 'updated_at', 'deleted_at', 'brand_id'], 'safe'],
         ];
     }
@@ -38,7 +38,9 @@ class CategorySearch extends Category
             ],
             'sort' => [
                 'params' => $params,
-                'defaultOrder' => ['id' => SORT_DESC]
+                // Quy ước sắp xếp hiển thị: priority nhỏ hiện trước (giống banner và menu danh mục),
+                // hết priority thì mới tới id giảm dần cho bản ghi mới lên trên.
+                'defaultOrder' => ['priority' => SORT_ASC, 'id' => SORT_DESC]
             ],
         ]);
 
@@ -51,6 +53,7 @@ class CategorySearch extends Category
         $query->andFilterWhere([
             'id' => $this->id,
             'priority' => $this->priority,
+            'show_on_home' => $this->show_on_home,
             'parent_id' => $this->parent_id,
             'owner_id' => $this->owner_id,
             'deleted_at' => $this->deleted_at,

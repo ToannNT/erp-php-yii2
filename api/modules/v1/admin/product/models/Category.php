@@ -39,6 +39,9 @@ class Category extends BaseCategory
             "description",
             "parent_id",
             "icon",
+            // Thứ tự hiển thị (số nhỏ hiện trước) và cờ đưa lên trang chủ.
+            "priority",
+            "show_on_home",
             "brands" => function () {
                 // Map thẳng ra array thay vì trả AR: Brand::fields() của module admin có field
                 // `categories` (relation) nên serialize AR sẽ sinh thêm 1 query mỗi nhãn hiệu.
@@ -74,7 +77,12 @@ class Category extends BaseCategory
             [["status"], "in", "range" => [
                 Category::STATUS_ACTIVE, Category::STATUS_INACTIVE
             ]],
-            ["icon", "safe"]
+            ["icon", "safe"],
+            // rules() ở đây REPLACE hoàn toàn parent nên phải khai lại, không thì
+            // `priority`/`show_on_home` không nằm trong safe attributes và load() bỏ qua.
+            [["priority", "show_on_home"], "default", "value" => 0],
+            [["priority"], "integer"],
+            [["show_on_home"], "boolean"]
         ];
     }
 

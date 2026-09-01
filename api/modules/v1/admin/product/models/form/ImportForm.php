@@ -42,10 +42,19 @@ abstract class ImportForm extends Model
             return $result;
         }
 
-        $rawHeader = array_map('trim', array_shift($rows));
+        // Ô tiêu đề trống thì PhpSpreadsheet trả NULL, mà `trim(null)` là deprecated ở PHP 8.1 —
+        // Yii biến deprecation thành ErrorException nên cả file import chết với thông báo
+        // "trim(): Passing null to parameter #1". Xảy ra khi bảng tính có cột rộng hơn hàng tiêu đề:
+        // dán giá trị vào cột chưa đặt tên, hoặc xoá tên cột mà còn để lại dữ liệu.
+        $rawHeader = array_map(static function ($value): string {
+            return trim((string)$value);
+        }, array_shift($rows));
         $header = array_map('strtolower', $rawHeader);
         $this->headerLabels = array_combine($header, $rawHeader);
         $columnMap = array_flip($header);
+
+        // Cột không có tiêu đề thì bỏ hẳn, đừng sinh key rỗng trong $data.
+        unset($this->headerLabels[''], $columnMap['']);
         foreach ($this->allowedColumns as $col) {
             if (!isset($columnMap[$col])) {
                 $result['errors'][] = "File Excel thiếu cột bắt buộc: \"{$col}\".";

@@ -14,6 +14,10 @@ class Category extends BaseCategory
             "name",
             "code",
             "icon" => "firstIcon",
+            "description",
+            // Thứ tự hiển thị và cờ danh mục nổi bật trên trang chủ.
+            "priority",
+            "show_on_home",
             "created_at",
             "updated_at",
             "brands" => "brands",

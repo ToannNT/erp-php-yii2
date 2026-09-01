@@ -22,6 +22,7 @@ class BrandSearch extends Brand
             "images",
             "color",
             "priority",
+            "show_on_home",
             "parent_id"
         ];
     }
@@ -62,7 +63,8 @@ class BrandSearch extends Brand
             "description" => $this->description,
             "icon" => $this->icon,
             "images" => $this->images,
-            "color" => $this->color
+            "color" => $this->color,
+            "show_on_home" => $this->show_on_home
         ];
     }
 
@@ -75,7 +77,9 @@ class BrandSearch extends Brand
                 'params' => $params
             ],
             'sort' => [
-                'params' => $params
+                'params' => $params,
+                // priority nhỏ hiện trước — cùng quy ước với banner và menu danh mục.
+                'defaultOrder' => ['priority' => SORT_ASC, 'id' => SORT_DESC]
             ]
         ]);
         $this->load($params, "");

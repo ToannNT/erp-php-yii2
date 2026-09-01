@@ -55,6 +55,7 @@ class Category extends BaseCategory
             'images' => Yii::t("api", 'Images'),
             'color' => Yii::t("api", 'Color'),
             'priority' => Yii::t("api", 'Priority'),
+            'show_on_home' => Yii::t("api", 'Show On Home'),
             'description' => Yii::t("api", 'Description'),
             'parent_id' => Yii::t("api", 'Parent ID'),
             'owner_id' => Yii::t("api", 'Owner ID'),

@@ -14,6 +14,9 @@ class Brand extends BaseBrand
             "name",
             "icon" => "firstIcon",
             "slug",
+            // Thứ tự hiển thị và cờ nhãn hiệu nổi bật trên trang chủ.
+            "priority",
+            "show_on_home",
         ];
     }
 

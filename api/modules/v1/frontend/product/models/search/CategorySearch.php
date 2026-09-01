@@ -10,7 +10,7 @@ class CategorySearch extends Category
     public function rules(): array
     {
         return [
-            [['id', 'priority', 'parent_id', 'status'], 'integer'],
+            [['id', 'priority', 'show_on_home', 'parent_id', 'status'], 'integer'],
             [['name', 'type', 'code', 'icon', 'images','slug'], 'safe'],
         ];
     }
@@ -30,7 +30,8 @@ class CategorySearch extends Category
             ],
             'sort' => [
                 'params' => $params,
-                'defaultOrder' => ['id' => SORT_DESC]
+                // priority nhỏ hiện trước — cùng quy ước với banner và menu danh mục.
+                'defaultOrder' => ['priority' => SORT_ASC, 'id' => SORT_DESC]
             ]
         ]);
 
@@ -45,7 +46,8 @@ class CategorySearch extends Category
             'name' => $this->name,
             "type" => $this->type,
             "code" => $this->code,
-            "icon" => $this->icon
+            "icon" => $this->icon,
+            "show_on_home" => $this->show_on_home
         ]);
         return $dataProvider;
     }

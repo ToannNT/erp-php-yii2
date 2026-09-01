@@ -3,6 +3,7 @@
 namespace api\modules\v1\admin\product\controllers;
 
 use api\modules\v1\admin\product\models\form\BrandForm;
+use api\modules\v1\admin\product\models\form\SortForm;
 use common\models\User;
 use Yii;
 use api\helper\response\ApiConstant;
@@ -96,6 +97,22 @@ class BrandController extends Controller
         return ResponseBuilder::responseJson(true, (new BrandSearch())->search(Yii::$app->request->queryParams));
     }
 
+
+    /**
+     * Sắp xếp thứ tự hiển thị hàng loạt — FE kéo thả xong gửi 1 request duy nhất.
+     *
+     * Body: {"items": [{"id": 49, "priority": 1}, {"id": 52, "priority": 2}]}
+     * Thiếu `priority` thì lấy vị trí trong mảng. Quy ước: priority nhỏ hiện trước.
+     */
+    public function actionSort(): array
+    {
+        $form = new SortForm(["modelClass" => Brand::class]);
+        $form->load(Yii::$app->request->post());
+        if (!$form->validate() || !$form->apply()) {
+            return ResponseBuilder::responseJson(false, ["errors" => $form->getErrors()], "Can't sort Brand");
+        }
+        return ResponseBuilder::responseJson(true, ["applied" => $form->getApplied()], "Sort Brand successfully");
+    }
 
     /**
      * @throws HttpException

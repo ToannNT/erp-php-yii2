@@ -18,6 +18,7 @@ use Yii;
  * @property string $images
  * @property string $color
  * @property integer $priority
+ * @property integer $show_on_home
  * @property integer $parent_id
  * @property integer $owner_id
  * @property string $group_id
@@ -48,7 +49,7 @@ abstract class Brand extends \common\models\base\ActiveRecord
     {
         return [
             [['description', 'icon', 'images', 'group_id'], 'string'],
-            [['priority', 'parent_id', 'owner_id', 'status'], 'integer'],
+            [['priority', 'show_on_home', 'parent_id', 'owner_id', 'status'], 'integer'],
             [['created_at', 'updated_at', 'deleted_at'], 'safe'],
             [['name'], 'string', 'max' => 256],
             [['type'], 'string', 'max' => 32],
@@ -73,6 +74,7 @@ abstract class Brand extends \common\models\base\ActiveRecord
             'images' => 'Images',
             'color' => 'Color',
             'priority' => 'Priority',
+            'show_on_home' => 'Show On Home',
             'parent_id' => 'Parent ID',
             'owner_id' => 'Owner ID',
             'group_id' => 'Group ID',

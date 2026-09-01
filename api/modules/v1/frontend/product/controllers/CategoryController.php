@@ -48,8 +48,12 @@ class CategoryController extends Controller
      */
     public function actionView(int $id): array
     {
+        // Trả `false` là bug: `ApiConstant::STATUS_NOT_FOUND` bị truyền vào tham số thứ 3
+        // ($message), không phải $code — nên request THÀNH CÔNG vẫn ra
+        // {"status": false, "messages": "404", "code": 200} và FE tưởng lỗi.
+        // findModel() đã throw 404 khi không tìm thấy, tới đây là chắc chắn có dữ liệu.
         $category = $this->findModel($id);
-        return ResponseBuilder::responseJson(false, compact("category"), ApiConstant::STATUS_NOT_FOUND);
+        return ResponseBuilder::responseJson(true, compact("category"));
     }
 
     public function findModel($id)

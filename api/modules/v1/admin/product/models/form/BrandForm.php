@@ -43,6 +43,11 @@ class BrandForm extends Brand
                 Brand::STATUS_ACTIVE, Brand::STATUS_INACTIVE
             ]],
             ["icon", "safe"],
+            // rules() ở form này REPLACE hoàn toàn parent (không array_merge) nên phải khai lại,
+            // không thì `priority`/`show_on_home` không nằm trong safe attributes và load() bỏ qua.
+            [["priority", "show_on_home"], "default", "value" => 0],
+            [["priority"], "integer"],
+            [["show_on_home"], "boolean"],
             ["categories", IsArrayValidator::class]
         ];
     }

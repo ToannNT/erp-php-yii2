@@ -39,6 +39,9 @@ class Brand extends BrandBase
             "slug",
             "status",
             "icon",
+            // Thứ tự hiển thị (số nhỏ hiện trước) và cờ đưa lên trang chủ.
+            "priority",
+            "show_on_home",
             "created_at",
             "updated_at",
         ];

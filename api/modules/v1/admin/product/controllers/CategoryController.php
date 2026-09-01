@@ -8,8 +8,10 @@ use yii\rest\Controller;
 use yii\web\HttpException;
 use api\helper\response\ApiConstant;
 use api\helper\response\ResponseBuilder;
+use api\modules\v1\admin\product\models\Category;
 use api\modules\v1\admin\product\models\CategoryBrand;
 use api\modules\v1\admin\product\models\form\CategoryForm;
+use api\modules\v1\admin\product\models\form\SortForm;
 use api\modules\v1\admin\product\models\search\CategorySearch;
 
 class CategoryController extends Controller
@@ -104,6 +106,22 @@ class CategoryController extends Controller
     public function actionIndex(): array
     {
         return ResponseBuilder::responseJson(true, (new CategorySearch())->search(Yii::$app->request->queryParams));
+    }
+
+    /**
+     * Sắp xếp thứ tự hiển thị hàng loạt — FE kéo thả xong gửi 1 request duy nhất.
+     *
+     * Body: {"items": [{"id": 49, "priority": 1}, {"id": 52, "priority": 2}]}
+     * Thiếu `priority` thì lấy vị trí trong mảng. Quy ước: priority nhỏ hiện trước.
+     */
+    public function actionSort(): array
+    {
+        $form = new SortForm(["modelClass" => Category::class]);
+        $form->load(Yii::$app->request->post());
+        if (!$form->validate() || !$form->apply()) {
+            return ResponseBuilder::responseJson(false, ["errors" => $form->getErrors()], "Can't sort Category");
+        }
+        return ResponseBuilder::responseJson(true, ["applied" => $form->getApplied()], "Sort Category successfully");
     }
 
     /**
