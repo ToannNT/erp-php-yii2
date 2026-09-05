@@ -27,9 +27,11 @@ class CategoryController extends Controller
 
     public function actionMenu(): array
     {
+        // Menu là cây 2 cấp: chỉ lấy danh mục gốc, `children` đi kèm trong fields().
         $categories = Category::find()
             ->active()
-            ->with("latestProducts")
+            ->andWhere(["parent_id" => null])
+            ->with(["latestProducts", "children"])
             ->orderBy(["priority" => SORT_ASC, "id" => SORT_ASC])
             ->all();
 

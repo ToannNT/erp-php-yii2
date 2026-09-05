@@ -42,6 +42,23 @@ class Category extends BaseCategory
             // Thứ tự hiển thị (số nhỏ hiện trước) và cờ đưa lên trang chủ.
             "priority",
             "show_on_home",
+            // Danh mục con. Map tay ra array thay vì trả AR: fields() của con cũng có
+            // `children` nên serialize AR sẽ đệ quy và sinh thêm query mỗi cấp.
+            "children" => function () {
+                return array_map(static function (self $child) {
+                    return [
+                        "id" => $child->id,
+                        "name" => $child->name,
+                        "slug" => $child->slug,
+                        "code" => $child->code,
+                        "icon" => $child->icon,
+                        "parent_id" => (int) $child->parent_id,
+                        "priority" => (int) $child->priority,
+                        "show_on_home" => (int) $child->show_on_home,
+                        "status" => (int) $child->status,
+                    ];
+                }, $this->children);
+            },
             "brands" => function () {
                 // Map thẳng ra array thay vì trả AR: Brand::fields() của module admin có field
                 // `categories` (relation) nên serialize AR sẽ sinh thêm 1 query mỗi nhãn hiệu.
@@ -82,8 +99,33 @@ class Category extends BaseCategory
             // `priority`/`show_on_home` không nằm trong safe attributes và load() bỏ qua.
             [["priority", "show_on_home"], "default", "value" => 0],
             [["priority"], "integer"],
-            [["show_on_home"], "boolean"]
+            [["show_on_home"], "boolean"],
+            // `parent_id` vốn nằm trong fields() nhưng KHÔNG có trong rules() nên trước đây
+            // load() bỏ qua — gửi lên là mất im lặng. Validate cụ thể ở CategoryForm.
+            [["parent_id"], "integer"],
+            [["parent_id"], "default", "value" => null]
         ];
+    }
+
+    /**
+     * Danh mục cha. NULL nghĩa là danh mục gốc (cấp 1).
+     */
+    public function getParent()
+    {
+        return $this->hasOne(self::class, ["id" => "parent_id"]);
+    }
+
+    /**
+     * Danh mục con trực tiếp, sắp đúng thứ tự hiển thị như mọi danh sách khác.
+     *
+     * Hệ thống chốt tối đa 2 cấp (gốc + con) nên con của con luôn rỗng — validate ở
+     * CategoryForm::validateParent().
+     */
+    public function getChildren()
+    {
+        return $this->hasMany(self::class, ["parent_id" => "id"])
+            ->andOnCondition(["<>", "category.status", self::STATUS_DELETE])
+            ->orderBy(["category.priority" => SORT_ASC, "category.id" => SORT_DESC]);
     }
 
     public function getCategoryBrands()

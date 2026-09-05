@@ -7,11 +7,21 @@ use api\modules\v1\frontend\product\models\Category;
 
 class CategorySearch extends Category
 {
+    /**
+     * `1` => trả PHẲNG cả danh mục cha lẫn con (không lồng).
+     *
+     * Mặc định chỉ trả danh mục gốc kèm `children`; FE cần danh sách phẳng (vd để build
+     * breadcrumb hoặc trang "tất cả danh mục") thì gọi `?flat=1`.
+     *
+     * @var int|string|null
+     */
+    public $flat;
+
     public function rules(): array
     {
         return [
             [['id', 'priority', 'show_on_home', 'parent_id', 'status'], 'integer'],
-            [['name', 'type', 'code', 'icon', 'images','slug'], 'safe'],
+            [['name', 'type', 'code', 'icon', 'images', 'slug', 'flat'], 'safe'],
         ];
     }
 
@@ -22,7 +32,7 @@ class CategorySearch extends Category
 
     public function search($params): ActiveDataProvider
     {
-        $query = Category::find()->active();
+        $query = Category::find()->active()->with(["children"]);
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
@@ -36,6 +46,12 @@ class CategorySearch extends Category
         ]);
 
         $this->load($params, "");
+
+        // Mặc định chỉ trả danh mục GỐC, mỗi cái kèm `children`.
+        // `?flat=1` lấy phẳng, `?parent_id=44` lấy con của 1 cha.
+        if (!$this->flat && ($this->parent_id === null || $this->parent_id === "")) {
+            $query->andWhere(["parent_id" => null]);
+        }
         if (!$this->validate()) {
             return $dataProvider;
         }

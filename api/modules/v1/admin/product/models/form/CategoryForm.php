@@ -34,6 +34,7 @@ class CategoryForm extends Category
         return array_merge(parent::rules(), [
             ["brands", IsArrayValidator::class],
             ["brands", "validateBrands"],
+            ["parent_id", "validateParent"],
         ]);
     }
 
@@ -63,6 +64,56 @@ class CategoryForm extends Category
             return;
         }
         $this->$attribute = $ids;
+    }
+
+    /**
+     * Kiểm tra danh mục cha. Hệ thống chốt TỐI ĐA 2 CẤP (gốc + con).
+     *
+     * Không gửi `parent_id` hoặc gửi null/"" => danh mục gốc.
+     *
+     * Ràng buộc 2 cấp làm luôn nhiệm vụ chống vòng lặp: cha bắt buộc là gốc, còn bản thân
+     * nó nếu đang có con thì không được làm con của ai — nên A→B→A là bất khả.
+     */
+    public function validateParent($attribute)
+    {
+        if ($this->$attribute === null || $this->$attribute === "") {
+            $this->$attribute = null;
+            return;
+        }
+
+        $parentId = (int) $this->$attribute;
+        if ($this->id && $parentId === (int) $this->id) {
+            $this->addError($attribute, Yii::t("api", "Category can not be its own parent"));
+            return;
+        }
+
+        $parent = Category::find()
+            ->where(["id" => $parentId])
+            ->andWhere(["!=", "status", Category::STATUS_DELETE])
+            ->one();
+        if (!$parent) {
+            $this->addError($attribute, Yii::t("api", "Parent category not found: {id}", [
+                "id" => $parentId,
+            ]));
+            return;
+        }
+        if ($parent->parent_id !== null) {
+            $this->addError($attribute, Yii::t("api", "Only 2 levels are supported: \"{name}\" is already a child category", [
+                "name" => $parent->name,
+            ]));
+            return;
+        }
+
+        // Chính nó đang có con mà lại nhận cha => thành 3 cấp.
+        if ($this->id && Category::find()
+            ->where(["parent_id" => $this->id])
+            ->andWhere(["!=", "status", Category::STATUS_DELETE])
+            ->exists()) {
+            $this->addError($attribute, Yii::t("api", "This category has children so it can not become a child itself (max 2 levels)"));
+            return;
+        }
+
+        $this->$attribute = $parentId;
     }
 
     /**

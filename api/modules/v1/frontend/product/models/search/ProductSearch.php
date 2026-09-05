@@ -2,6 +2,7 @@
 
 namespace api\modules\v1\frontend\product\models\search;
 
+use api\modules\v1\frontend\product\models\Category;
 use api\modules\v1\frontend\product\models\Product;
 use common\models\ProductQuery;
 use yii\data\ActiveDataProvider;
@@ -107,15 +108,19 @@ class ProductSearch extends Product
             $query->andFilterWhere(["<=", "product.unit_price", $this->max_price]);
         }
         if ($this->category_slug) {
-            $query->joinWith("category")
-                ->andFilterWhere(["category.slug" => $this->category_slug]);
+            $slugIds = Category::find()
+                ->select(["id"])
+                ->where(["slug" => $this->category_slug])
+                ->active()
+                ->column();
+            $query->andWhere(["product.category_id" => $this->withChildCategories($slugIds)]);
         }
         if ($this->brand_slug) {
             $query->joinWith("brand")
                 ->andFilterWhere(["brand.slug" => $this->brand_slug]);
         }
         if ($this->category_id) {
-            $query->andFilterWhere(["product.category_id" => $this->category_id]);
+            $query->andWhere(["product.category_id" => $this->withChildCategories($this->category_id)]);
         }
         if ($this->brand_id) {
             $query->andFilterWhere(["product.brand_id" => $this->brand_id]);
@@ -164,6 +169,32 @@ class ProductSearch extends Product
             $jsonSql = "(JSON_EXTRACT(`product_variant`.`meta_field`, \"$[*].key\") REGEXP :key{$index} AND JSON_EXTRACT(`product_variant`.`meta_field`, \"$[*].slug\") REGEXP :productMetaFilter{$index})";
             $query->andWhere($jsonSql, [":key{$index}" => $key, ":productMetaFilter{$index}" => $productMetaFilter]);
         }
+    }
+
+    /**
+     * Gộp id danh mục truyền vào với id các danh mục CON của chúng.
+     *
+     * Không có bước này thì khách bấm danh mục cha ("Router") sẽ ra 0 sản phẩm, vì hàng
+     * nằm hết ở danh mục con ("Router WiFi 6") — `product.category_id` chỉ giữ 1 giá trị.
+     *
+     * Chỉ đi 1 cấp vì hệ thống chốt tối đa 2 cấp (xem CategoryForm::validateParent).
+     *
+     * @param int|int[]|string|null $ids
+     * @return int[] rỗng => không có danh mục nào khớp, IN () sẽ tự loại hết sản phẩm
+     */
+    private function withChildCategories($ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map("intval", (array) $ids))));
+        if (!$ids) {
+            return [];
+        }
+        $children = Category::find()
+            ->select(["id"])
+            ->where(["parent_id" => $ids])
+            ->active()
+            ->column();
+
+        return array_values(array_unique(array_merge($ids, array_map("intval", $children))));
     }
 
     public function setProductMetaFilter($params = [])

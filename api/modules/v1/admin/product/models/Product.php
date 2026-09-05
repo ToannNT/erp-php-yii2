@@ -123,11 +123,14 @@ class Product extends BaseProduct
 
     public function getCategory($selects = [])
     {
+        // `parent_id` để FE hiển thị đường dẫn "Router › Router WiFi 6" khi sản phẩm được
+        // gán vào danh mục con — không có nó thì chỉ thấy mỗi tên con, mất ngữ cảnh.
         return $this->hasOne(Category::class, ["id" => "category_id"])->addSelect([
             "id",
             "name",
             "code",
-            "slug"
+            "slug",
+            "parent_id"
         ]);
     }
 

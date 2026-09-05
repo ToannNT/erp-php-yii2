@@ -11,11 +11,21 @@ class CategorySearch extends Category
     /** @var int|int[]|string|null id nhãn hiệu, nhận 1 giá trị hoặc danh sách "1,2,3" */
     public $brand_id;
 
+    /**
+     * `1` => trả PHẲNG cả cha lẫn con (không lồng).
+     *
+     * Mặc định list chỉ trả danh mục gốc kèm `children`, nhưng chính ô "chọn danh mục cha"
+     * và ô chọn danh mục của sản phẩm lại cần danh sách phẳng để đổ options.
+     *
+     * @var int|string|null
+     */
+    public $flat;
+
     public function rules()
     {
         return [
             [['id', 'priority', 'show_on_home', 'parent_id', 'owner_id', 'status'], 'integer'],
-            [['name', 'type', 'code', 'icon', 'images', 'color', 'description', 'slug', 'group_id', 'created_at', 'updated_at', 'deleted_at', 'brand_id'], 'safe'],
+            [['name', 'type', 'code', 'icon', 'images', 'color', 'description', 'slug', 'group_id', 'created_at', 'updated_at', 'deleted_at', 'brand_id', 'flat'], 'safe'],
         ];
     }
 
@@ -29,7 +39,7 @@ class CategorySearch extends Category
     public function search($params)
     {
 
-        $query = Category::find()->unDelete()->with(["batchBrands"]);
+        $query = Category::find()->unDelete()->with(["batchBrands", "children"]);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -45,6 +55,12 @@ class CategorySearch extends Category
         ]);
 
         $this->load($params);
+        // Mặc định chỉ trả danh mục GỐC, mỗi cái kèm `children` (yêu cầu của leader:
+        // "get list chỉ get category bình thường, cái nào có con thì show ra kiểu list").
+        // `?flat=1` để lấy phẳng, `?parent_id=44` để lấy con của 1 cha.
+        if (!$this->flat && ($this->parent_id === null || $this->parent_id === "")) {
+            $query->andWhere(["parent_id" => null]);
+        }
 
         if (!$this->validate()) {
             return $dataProvider;

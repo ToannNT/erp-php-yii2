@@ -80,6 +80,19 @@ class CategoryController extends Controller
     public function actionDelete(int $id): array
     {
         $category = $this->findModel($id);
+
+        // Chặn thay vì xoá lây: xoá mềm cha mà bỏ con lại thì con thành mồ côi, list chỉ
+        // trả danh mục gốc nên chúng biến mất khỏi màn hình và không cách nào sửa lại.
+        $childCount = Category::find()
+            ->where(["parent_id" => $category->id])
+            ->andWhere(["!=", "status", Category::STATUS_DELETE])
+            ->count();
+        if ($childCount) {
+            return ResponseBuilder::responseJson(false, null, Yii::t("api", "Category still has {count} child categories, move or delete them first", [
+                "count" => $childCount,
+            ]));
+        }
+
         $transaction = Yii::$app->db->beginTransaction();
         if (!$category->softDelete()) {
             $transaction->rollBack();
