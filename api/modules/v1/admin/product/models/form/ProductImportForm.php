@@ -24,8 +24,13 @@ class ProductImportForm extends ImportForm
     /** Trần số ảnh lấy cho mỗi dòng — chặn file Excel dán nhầm cả trăm link. */
     private const MAX_IMAGES = 10;
 
-    /** Giới hạn dung lượng 1 ảnh tải về (byte). */
-    private const IMAGE_MAX_BYTES = 5242880;
+    /**
+     * Giới hạn dung lượng 1 ảnh tải về.
+     *
+     * Chỉ giữ 1 ảnh trong RAM mỗi lượt (tải xong là ghi ra file tạm rồi giải phóng) nên 10MB
+     * không đụng `memory_limit` 128M. Cái dễ vỡ trước là thời gian: 10 ảnh x IMAGE_TIMEOUT.
+     */
+    private const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 
     /** Timeout tải 1 ảnh (giây). */
     private const IMAGE_TIMEOUT = 15;
@@ -337,7 +342,16 @@ class ProductImportForm extends ImportForm
         if ($raw === '') {
             return null;
         }
-        $urls = array_values(array_unique(array_filter(array_map('trim', explode(',', $raw)))));
+        // Tách bằng dấu phẩy HOẶC ngắt dòng (Alt+Enter trong Excel) — người dùng hay dán mỗi link 1 dòng.
+        // Cố tình KHÔNG nhận `;` vì query string của URL có thể chứa dấu này.
+        $parts = preg_split('/[,\r\n]+/', $raw) ?: [];
+        $urls = array_values(array_unique(array_filter(array_map(static function ($url): string {
+            // `trim()` không cắt được NBSP (U+00A0), ZWSP (U+200B) hay BOM (U+FEFF) — mà copy link
+            // từ trang web về Excel rất hay lẫn mấy ký tự này, khiến URL trượt regex http(s)
+            // rồi bị bỏ qua kèm warning mà nhìn mắt thường không thấy sai chỗ nào.
+            $invisible = ["\xC2\xA0", "\xE2\x80\x8B", "\xEF\xBB\xBF"];
+            return trim(str_replace($invisible, ' ', (string) $url));
+        }, $parts))));
         if (!$urls) {
             return null;
         }
@@ -386,7 +400,8 @@ class ProductImportForm extends ImportForm
             return null;
         }
         if (strlen($content) > self::IMAGE_MAX_BYTES) {
-            $this->warnings[] = "Dòng {$rowIndex}: ảnh nặng hơn 5MB, bỏ qua — {$url}";
+            $limitMb = (int) (self::IMAGE_MAX_BYTES / 1024 / 1024);
+            $this->warnings[] = "Dòng {$rowIndex}: ảnh nặng hơn {$limitMb}MB, bỏ qua — {$url}";
             return null;
         }
 

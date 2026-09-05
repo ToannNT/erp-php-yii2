@@ -203,8 +203,8 @@ class ItemController extends Controller
      * Xuất sản phẩm ra Excel **đúng format import** (`docs/product_import_template.xlsx`), để sửa
      * hàng loạt trong Excel rồi import ngược lại — `product-import/import` upsert theo `sku`.
      *
-     * Nhận mọi filter của `ProductSearch` (`?status=`, `?product_name=`…) và xuất toàn bộ kết quả,
-     * không phân trang.
+     * Nhận mọi filter của `ProductSearch` (`?status=`, `?product_name=`…) **và phân trang**
+     * (`?page=1&per-page=50`). Xuất đúng các bản ghi thuộc trang được chỉ định.
      *
      * `?include_html=1` để kèm `additional_data` dưới dạng cột `html_<tên khối>`. Mặc định tắt vì
      * mỗi khối HTML nặng vài KB, phồng file và ăn RAM nhanh hơn tất cả các cột còn lại cộng lại.
@@ -217,11 +217,13 @@ class ItemController extends Controller
     public function actionExport(): Response
     {
         $includeHtml = (bool)Yii::$app->request->get('include_html');
-        $products = (new ProductSearch())
-            ->search(Yii::$app->request->queryParams)
-            ->query
-            ->with(['category', 'brand'])
-            ->all();
+        $dataProvider = (new ProductSearch())->search(Yii::$app->request->queryParams);
+        $dataProvider->query->with(['category', 'brand']);
+
+        // Lấy đúng records theo trang hiện tại thay vì toàn bộ
+        $products = $dataProvider->getModels();
+        $pagination = $dataProvider->getPagination();
+        $currentPage = $pagination->getPage() + 1; // Yii pagination 0-indexed
 
         $htmlColumns = [];
         $rows = [];
@@ -264,7 +266,7 @@ class ItemController extends Controller
         return $this->sendSpreadsheet(
             array_merge(ProductImportForm::FIXED_COLUMNS, array_keys($htmlColumns)),
             $rows,
-            'products_' . date('Ymd_His') . '.xlsx'
+            'products_page' . $currentPage . '_' . date('Ymd_His') . '.xlsx'
         );
     }
 

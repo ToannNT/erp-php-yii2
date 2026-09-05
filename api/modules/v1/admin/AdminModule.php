@@ -22,6 +22,7 @@ class AdminModule extends Module
             "article" => article\Module::class,
             "cms" => cms\Module::class,
             "feedback" => feedback\Module::class,
+            "media" => media\Module::class,
         ];
     }
 
